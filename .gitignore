@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Xcode — per-user state
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+
+# Xcode — build output
+build/
+DerivedData/
+*.xcworkspace/xcshareddata/swiftpm/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# CocoaPods (if ever used)
+Pods/
+
+# Claude Code per-machine config
+.claude/
+
+# Local agent scratch (PRDs, issues, drafts)
+.scratch/
