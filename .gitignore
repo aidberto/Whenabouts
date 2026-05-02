@@ -20,8 +20,4 @@ Package.resolved
 # CocoaPods (if ever used)
 Pods/
 
-# Claude Code per-machine config
-.claude/
 
-# Local agent scratch (PRDs, issues, drafts)
-.scratch/
