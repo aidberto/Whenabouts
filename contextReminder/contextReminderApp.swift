@@ -9,6 +9,7 @@ import SwiftUI
 struct contextReminderApp: App {
     // The single saved-Places store, kept alive for the whole app session.
     @StateObject private var placeStore = JSONPlaceStore()
+    @StateObject private var reminderStore = JSONReminderStore()
 
     // Watches the user's location and exposes auth state to the rest of the app.
     @StateObject private var locationProvider = CoreLocationProvider()
@@ -22,6 +23,9 @@ struct contextReminderApp: App {
     var body: some Scene {
         WindowGroup {
             TabView {
+                RemindersView(viewModel: remindersViewModel)
+                    .tabItem { Label("Reminders", systemImage: "bell") }
+
                 PlacesLibraryView(viewModel: placesLibraryViewModel)
                     .tabItem { Label("Places", systemImage: "list.bullet") }
 
@@ -63,6 +67,13 @@ struct contextReminderApp: App {
             store: placeStore,
             location: locationProvider,
             poiDiscovery: poiDiscovery
+        )
+    }
+
+    private var remindersViewModel: RemindersViewModel {
+        RemindersViewModel(
+            reminderStore: reminderStore,
+            placeStore: placeStore
         )
     }
 }

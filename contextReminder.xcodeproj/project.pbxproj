@@ -255,6 +255,17 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3THMPN9NTN;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					contextReminder/Model/ChecklistItem.swift,
+					contextReminder/Model/LocationAuthorization.swift,
+					contextReminder/Model/Place.swift,
+					contextReminder/Model/PlaceType.swift,
+					contextReminder/Model/ReminderCategory.swift,
+					contextReminder/Model/ReminderPriority.swift,
+					contextReminder/Model/ReminderTarget.swift,
+					contextReminder/Model/ReminderTrigger.swift,
+					contextReminder/Model/TriggerType.swift,
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -287,6 +298,17 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3THMPN9NTN;
 				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					contextReminder/Model/ChecklistItem.swift,
+					contextReminder/Model/LocationAuthorization.swift,
+					contextReminder/Model/Place.swift,
+					contextReminder/Model/PlaceType.swift,
+					contextReminder/Model/ReminderCategory.swift,
+					contextReminder/Model/ReminderPriority.swift,
+					contextReminder/Model/ReminderTarget.swift,
+					contextReminder/Model/ReminderTrigger.swift,
+					contextReminder/Model/TriggerType.swift,
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

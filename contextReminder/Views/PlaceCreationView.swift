@@ -176,30 +176,34 @@ struct PlaceCreationView: View {
     }
 }
 
-#Preview("Create — populated location") {
-    PlaceCreationView(
-        viewModel: PlaceCreationViewModel(
-            store: InMemoryPlaceStore(),
-            location: ScriptedLocationProvider(),
-            searcher: StaticAddressSearcher(),
-            geocoder: StaticGeocoder(address: "Sample Street, Sydney")
-        )
-    )
-}
-
-#Preview("Edit — existing place") {
-    PlaceCreationView(
-        viewModel: PlaceCreationViewModel(
-            store: InMemoryPlaceStore(),
-            location: ScriptedLocationProvider(),
-            searcher: StaticAddressSearcher(),
-            geocoder: StaticGeocoder(),
-            editing: Place(
-                name: "Home",
-                placeType: .home,
-                latitude: -33.8688,
-                longitude: 151.2093
+struct PlaceCreationView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            PlaceCreationView(
+                viewModel: PlaceCreationViewModel(
+                    store: InMemoryPlaceStore(),
+                    location: ScriptedLocationProvider(),
+                    searcher: StaticAddressSearcher(),
+                    geocoder: StaticGeocoder(address: "Sample Street, Sydney")
+                )
             )
-        )
-    )
+            .previewDisplayName("Create - populated location")
+
+            PlaceCreationView(
+                viewModel: PlaceCreationViewModel(
+                    store: InMemoryPlaceStore(),
+                    location: ScriptedLocationProvider(),
+                    searcher: StaticAddressSearcher(),
+                    geocoder: StaticGeocoder(),
+                    editing: Place(
+                        name: "Home",
+                        placeType: .home,
+                        latitude: -33.8688,
+                        longitude: 151.2093
+                    )
+                )
+            )
+            .previewDisplayName("Edit - existing place")
+        }
+    }
 }
