@@ -150,28 +150,39 @@ private extension Place {
 
 // MARK: - Previews
 
-#Preview("With Places + POIs") {
-    let store = InMemoryPlaceStore(places: [
-        Place(name: "Home", placeType: .home, latitude: -33.8688, longitude: 151.2093),
-        Place(name: "Uni", placeType: .work, latitude: -33.8915, longitude: 151.1955)
-    ])
-    let location = ScriptedLocationProvider(
-        authorization: .full,
-        currentCoordinate: LocationCoordinate(latitude: -33.8800, longitude: 151.2050)
-    )
-    let poi = StaticPOIDiscovery()
-    let vm = MapScreenViewModel(store: store, location: location, poiDiscovery: poi)
-    vm.selectedPOICategory = .supermarket
-    Task { await vm.refreshPOIs() }
-    return MapScreenView(viewModel: vm)
-}
+struct MapScreenView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            MapScreenView(viewModel: populatedViewModel)
+                .previewDisplayName("With Places + POIs")
 
-#Preview("Empty + denied permission") {
-    MapScreenView(
-        viewModel: MapScreenViewModel(
-            store: InMemoryPlaceStore(),
-            location: ScriptedLocationProvider(authorization: .denied, currentCoordinate: nil),
+            MapScreenView(
+                viewModel: MapScreenViewModel(
+                    store: InMemoryPlaceStore(),
+                    location: ScriptedLocationProvider(authorization: .denied, currentCoordinate: nil),
+                    poiDiscovery: StaticPOIDiscovery()
+                )
+            )
+            .previewDisplayName("Empty + denied permission")
+        }
+    }
+
+    private static var populatedViewModel: MapScreenViewModel {
+        let store = InMemoryPlaceStore(places: [
+            Place(name: "Home", placeType: .home, latitude: -33.8688, longitude: 151.2093),
+            Place(name: "Uni", placeType: .work, latitude: -33.8915, longitude: 151.1955)
+        ])
+        let location = ScriptedLocationProvider(
+            authorization: .full,
+            currentCoordinate: LocationCoordinate(latitude: -33.8800, longitude: 151.2050)
+        )
+        let viewModel = MapScreenViewModel(
+            store: store,
+            location: location,
             poiDiscovery: StaticPOIDiscovery()
         )
-    )
+        viewModel.selectedPOICategory = .supermarket
+        Task { await viewModel.refreshPOIs() }
+        return viewModel
+    }
 }

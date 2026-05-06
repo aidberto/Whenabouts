@@ -73,27 +73,31 @@ extension PlaceCreationViewModel: Identifiable {
     public var id: ObjectIdentifier { ObjectIdentifier(self) }
 }
 
-#Preview("With places") {
-    PlacesLibraryView(
-        viewModel: PlacesLibraryViewModel(
-            store: InMemoryPlaceStore(places: [
-                Place(name: "Home", placeType: .home, latitude: -33.8688, longitude: 151.2093),
-                Place(name: "Coles Broadway", placeType: .supermarket, latitude: -33.8836, longitude: 151.1959)
-            ]),
-            location: ScriptedLocationProvider(),
-            searcher: StaticAddressSearcher(),
-            geocoder: StaticGeocoder()
-        )
-    )
-}
+struct PlacesLibraryView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            PlacesLibraryView(
+                viewModel: PlacesLibraryViewModel(
+                    store: InMemoryPlaceStore(places: [
+                        Place(name: "Home", placeType: .home, latitude: -33.8688, longitude: 151.2093),
+                        Place(name: "Coles Broadway", placeType: .supermarket, latitude: -33.8836, longitude: 151.1959)
+                    ]),
+                    location: ScriptedLocationProvider(),
+                    searcher: StaticAddressSearcher(),
+                    geocoder: StaticGeocoder()
+                )
+            )
+            .previewDisplayName("With places")
 
-#Preview("Empty") {
-    PlacesLibraryView(
-        viewModel: PlacesLibraryViewModel(
-            store: InMemoryPlaceStore(),
-            location: ScriptedLocationProvider(),
-            searcher: StaticAddressSearcher(),
-            geocoder: StaticGeocoder()
-        )
-    )
+            PlacesLibraryView(
+                viewModel: PlacesLibraryViewModel(
+                    store: InMemoryPlaceStore(),
+                    location: ScriptedLocationProvider(),
+                    searcher: StaticAddressSearcher(),
+                    geocoder: StaticGeocoder()
+                )
+            )
+            .previewDisplayName("Empty")
+        }
+    }
 }

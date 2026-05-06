@@ -14,9 +14,9 @@ import Foundation
 import MapKit
 
 protocol POIDiscovering {
-    /// Find nearby places of `category` within ~5km of `near`.
-    /// Returns up to `limit` results. Returns empty for personal categories
-    /// (home/work/custom) — those n eed a saved Place, not a generic search.
+    // Find nearby places of `category` within 5km of 'near'
+    // Returns up to `limit` results. Returns empty for personal categories
+    // (home/work/custom) — those n eed a saved place
     func nearestPOIs(
         category: PlaceType,
         near: LocationCoordinate,
