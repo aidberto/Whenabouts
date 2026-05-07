@@ -20,29 +20,17 @@ final class ReminderTriggerCoordinator {
         self.notificationManager = notificationManager
     }
     
-    func handleGeofenceEvent(
-        place: Place,
-        transition: RegionTransition
-    ){
+    func handleEvent(_ event: GeofenceEvent){
         let matchingReminders = reminderStore.reminders.filter { reminder in
+            
             guard !reminder.isCompleted else {
                 return false
             }
-            
-            guard matchesTransition(
-                reminder.trigger.triggerType,
-                transition
-            ) else {
-                return false
-            }
-            
-            return matchesTarget(
-                reminder.trigger.target,
-                place
-            )
+            return reminder.trigger.id == event.triggerId
         }
         
         for reminder in matchingReminders {
+            
             notificationManager.sendReminderNotification(
                 title: reminder.title,
                 body: reminder.notes.isEmpty ? "You have a reminder."
