@@ -19,7 +19,38 @@ struct contextReminderApp: App {
     private let addressSearcher: any AddressSearching = MKLocalAddressSearcher()
     private let geocoder: any Geocoding = CLGeocoder_Geocoder()
     private let poiDiscovery: any POIDiscovering = MKLocalPOIDiscovery()
-
+    private let notificationManager = LocalNotificationManager.shared
+    private let geofenceCoordinator: GeofenceCoordinator
+    private let reminderTriggerCoordinator: ReminderTriggerCoordinator
+    
+    init(){
+        
+        let locationProvider = CoreLocationProvider()
+        let reminderStore = JSONReminderStore()
+        
+        let geofenceCoordinator = GeofenceCoordinator(monitor: locationProvider)
+        
+        let reminderTriggerCoordinator = ReminderTriggerCoordinator(
+            reminderStore: reminderStore,
+            notificationManager: notificationManager
+            )
+        
+        geofenceCoordinator.onEvent = { event in
+            reminderTriggerCoordinator.handleEvent(event)
+        }
+        
+        self._locationProvider = StateObject(
+            wrappedValue: locationProvider
+        )
+        
+        self._reminderStore = StateObject(
+            wrappedValue: reminderStore
+        )
+        
+        self.geofenceCoordinator = geofenceCoordinator
+        self.reminderTriggerCoordinator = reminderTriggerCoordinator
+    }
+    
     var body: some Scene {
         WindowGroup {
             TabView {
@@ -44,6 +75,10 @@ struct contextReminderApp: App {
             .onAppear {
                 // Ask for location permission on first launch so the app is
                 // ready to use straight away.
+                Task {
+                    _ = await notificationManager.requestPermission()
+                }
+                
                 if locationProvider.authorization == .notDetermined {
                     locationProvider.requestWhenInUseAuthorization()
                 }
@@ -76,4 +111,5 @@ struct contextReminderApp: App {
             placeStore: placeStore
         )
     }
+    
 }
