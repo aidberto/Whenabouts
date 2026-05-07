@@ -43,6 +43,10 @@ final class LocalNotificationManager: NotificationManaging {
             trigger: nil
         )
         
-        UNUserNotificationCenter.current().add(request)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                print("Notification Scheduling Failed: \(error)")
+            }
+        }
     }
 }

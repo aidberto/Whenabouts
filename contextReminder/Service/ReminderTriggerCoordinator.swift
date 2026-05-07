@@ -39,36 +39,4 @@ final class ReminderTriggerCoordinator {
             )
         }
     }
-    
-    private func matchesTransition(
-        _ triggerType: TriggerType,
-        _ transition: RegionTransition
-    ) -> Bool {
-        
-        switch (triggerType, transition){
-            
-        case (.arriving, .enter):
-            return true
-            
-        case (.leaving, .exit):
-            return true
-            
-        default:
-            return false
-        }
-    }
-    
-    private func matchesTarget(
-        _ target: ReminderTarget,
-        _ place: Place
-    ) -> Bool {
-        
-        switch target {
-        case .place(let targetPlace):
-            return targetPlace.id == place.id
-            
-        case .placeType(let placeType):
-            return place.placeType == placeType
-        }
-    }
 }
