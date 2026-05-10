@@ -3,8 +3,8 @@
 //  contextReminder
 //
 //  Powers the Map screen. Always shows the user's saved Places.
-//  Optionally searches for nearby places of a category (supermarket,
-//  pharmacy, post office) and shows those too.
+//  Searches for nearby places and optionally filters by category
+//  (supermarket, pharmacy, post office).
 //
 
 import Foundation
@@ -12,11 +12,10 @@ import Combine
 
 @MainActor
 final class MapScreenViewModel: ObservableObject {
-    /// Places returned by the most recent POI search. Empty when no category
-    /// is selected.
+    /// Places returned by the most recent POI search.
     @Published private(set) var pois: [Place] = []
 
-    /// Which category to look for. nil means "don't show POIs".
+    /// Which category to look for. nil means show every discoverable category.
     @Published var selectedPOICategory: PlaceType?
 
     private let store: any PlaceStore
@@ -57,26 +56,38 @@ final class MapScreenViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Run a POI search using the currently-selected category and the user's
-    /// current location. Clears the result list if either is missing.
+    /// Run a POI search using the current filter and the user's current
+    /// location. With no filter selected, all discoverable categories are shown.
     func refreshPOIs() async {
-        guard
-            let category = selectedPOICategory,
-            let coordinate = location.currentCoordinate
-        else {
+        guard let coordinate = location.currentCoordinate else {
             pois = []
             return
         }
-        pois = await poiDiscovery.nearestPOIs(
-            category: category,
-            near: coordinate,
-            limit: 10
-        )
+
+        let categoriesToShow = selectedPOICategory.map { [$0] } ?? Self.discoverableCategories
+        var discoveredPOIs: [Place] = []
+
+        for category in categoriesToShow {
+            let categoryPOIs = await poiDiscovery.nearestPOIs(
+                category: category,
+                near: coordinate,
+                limit: 10
+            )
+            discoveredPOIs.append(contentsOf: categoryPOIs)
+        }
+
+        pois = discoveredPOIs
     }
 
     /// Pick a category and immediately refresh the POI list.
     func selectCategory(_ category: PlaceType?) {
         selectedPOICategory = category
         Task { await refreshPOIs() }
+    }
+
+    /// Async variant for views that need to react after the refreshed POIs exist.
+    func selectCategoryAndRefresh(_ category: PlaceType?) async {
+        selectedPOICategory = category
+        await refreshPOIs()
     }
 }

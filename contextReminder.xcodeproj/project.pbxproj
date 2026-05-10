@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		F6403FF62FB09ACF00B8A0A8 /* SimulatedLocation_UTS_Sydney.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = SimulatedLocation_UTS_Sydney.gpx; sourceTree = "<group>"; };
 		F6595A782F973A95003D8FCB /* contextReminder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = contextReminder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -45,6 +46,7 @@
 		F6595A6F2F973A95003D8FCB = {
 			isa = PBXGroup;
 			children = (
+				F6403FF62FB09ACF00B8A0A8 /* SimulatedLocation_UTS_Sydney.gpx */,
 				F6595A7A2F973A95003D8FCB /* contextReminder */,
 				F6595A792F973A95003D8FCB /* Products */,
 			);
