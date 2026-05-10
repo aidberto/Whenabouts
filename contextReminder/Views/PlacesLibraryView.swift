@@ -61,7 +61,6 @@ struct PlacesLibraryView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(todayStamp)
                     .font(.system(size: 12, weight: .medium, design: .serif))
-                    .italic()
                     .foregroundStyle(.secondary)
 
                 Text("My Places")
