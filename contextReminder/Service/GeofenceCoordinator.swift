@@ -84,7 +84,13 @@ final class GeofenceCoordinator {
         // circle, fire the event right now (iOS won't — it only fires on crosses).
         // We don't do this for leaving triggers — "user is inside" doesn't mean
         // "they just left", so firing now would be wrong.
-        guard let userLocation else { return }
+        
+        guard let userLocation else {
+            print("No user location available")
+            return }
+        
+        print(userLocation.latitude)
+        print(userLocation.longitude)
         for trigger in selected where toStart.contains(trigger.id) {
             guard trigger.triggerType == .arriving else { continue }
             if isInside(userLocation, trigger: trigger), !isDebounced(trigger) {
@@ -136,6 +142,7 @@ final class GeofenceCoordinator {
 
     private func emit(triggerId: UUID, kind: TriggerType) {
         let event = GeofenceEvent(triggerId: triggerId, kind: kind, timestamp: Date())
+        print("Geofence fired: \(kind)")
         onEvent?(event)
     }
 

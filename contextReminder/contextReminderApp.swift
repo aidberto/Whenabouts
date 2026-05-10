@@ -27,7 +27,14 @@ struct contextReminderApp: App {
     private let addressSearcher: any AddressSearching = MKLocalAddressSearcher()
     private let geocoder: any Geocoding = CLGeocoder_Geocoder()
     private let poiDiscovery: any POIDiscovering = MKLocalPOIDiscovery()
-
+    
+    private let notificationManager = LocalNotificationManager.shared
+    
+    @State private var hasInitializedServices = false
+    @State private var geofenceCoordinator: GeofenceCoordinator?
+    @State private var reminderTriggerCoordinator: ReminderTriggerCoordinator?
+    @State private var reminderMonitoringService: ReminderMonitoringService?
+        
     var body: some Scene {
         WindowGroup {
             TabView(selection: $selectedTab) {
@@ -56,8 +63,46 @@ struct contextReminderApp: App {
             .onAppear {
                 // Ask for location permission on first launch so the app is
                 // ready to use straight away.
+                
+                guard !hasInitializedServices else {
+                return
+                }
+
+                hasInitializedServices = true
+
+                Task {
+                _ = await notificationManager.requestPermission()
+                }
+
                 if locationProvider.authorization == .notDetermined {
-                    locationProvider.requestWhenInUseAuthorization()
+                locationProvider.requestWhenInUseAuthorization()
+                }
+
+                let geofenceCoordinator = GeofenceCoordinator(
+                monitor: locationProvider
+                )
+
+                let reminderTriggerCoordinator = ReminderTriggerCoordinator(
+                reminderStore: reminderStore,
+                notificationManager: notificationManager
+                )
+
+                let reminderMonitoringService = ReminderMonitoringService(
+                reminderStore: reminderStore,
+                geofenceCoordinator: geofenceCoordinator,
+                locationProvider: locationProvider
+                )
+
+                geofenceCoordinator.onEvent = { event in
+                reminderTriggerCoordinator.handleEvent(event)
+                }
+
+                self.geofenceCoordinator = geofenceCoordinator
+                self.reminderTriggerCoordinator = reminderTriggerCoordinator
+                self.reminderMonitoringService = reminderMonitoringService
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.reminderMonitoringService?.refreshMonitoring()
                 }
             }
         }
@@ -88,4 +133,5 @@ struct contextReminderApp: App {
             placeStore: placeStore
         )
     }
+    
 }
