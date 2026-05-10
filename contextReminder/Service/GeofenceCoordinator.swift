@@ -70,9 +70,6 @@ final class GeofenceCoordinator {
             monitor.stopMonitoring(id: id)
         }
         for trigger in selected where toStart.contains(trigger.id) {
-            print("Starting monitoring for trigger: \(trigger.id)")
-            print("Radius: \(trigger.radius)")
-            print("Coordinate: \(trigger.coordinate.latitude), \(trigger.coordinate.longitude)")
             monitor.startMonitoring(
                 id: trigger.id,
                 coordinate: trigger.coordinate,
@@ -88,13 +85,10 @@ final class GeofenceCoordinator {
         // We don't do this for leaving triggers — "user is inside" doesn't mean
         // "they just left", so firing now would be wrong.
         
-        print("User Location Exists: \(userLocation != nil)")
-        
         guard let userLocation else {
             print("No user location available")
             return }
         
-        print("current user location: ")
         print(userLocation.latitude)
         print(userLocation.longitude)
         for trigger in selected where toStart.contains(trigger.id) {

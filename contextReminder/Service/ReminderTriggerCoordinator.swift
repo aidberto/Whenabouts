@@ -22,7 +22,6 @@ final class ReminderTriggerCoordinator {
     
     func handleEvent(_ event: GeofenceEvent){
         
-        print("Handling geofence event for trigger \(event.triggerId)")
         let matchingReminders = reminderStore.reminders.filter { reminder in
             
             guard !reminder.isCompleted else {
