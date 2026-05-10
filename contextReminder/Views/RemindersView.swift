@@ -102,13 +102,15 @@ struct RemindersView: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
+            Text("🔔")
+                .font(.system(size: 42))
             VStack(spacing: 6) {
                 Text("nothing on the list.")
                     .font(.system(size: 21, weight: .regular, design: .serif))
                     .italic()
                     .foregroundStyle(Color(red: 0.17, green: 0.14, blue: 0.11))
 
-                Text("You're all caught up")
+                Text("You're all caught up. Add new reminders in the top right corner.")
                     .font(.system(size: 14, weight: .medium))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)

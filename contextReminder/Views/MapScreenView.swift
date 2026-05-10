@@ -28,8 +28,16 @@ struct MapScreenView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar(.hidden, for: .navigationBar)
             .onAppear { centreOnUserIfPossible() }
+            .task {
+                await viewModel.refreshPOIs()
+                fitVisibleAnnotations()
+            }
             .onChange(of: viewModel.currentCoordinate?.latitude) { _, _ in
                 centreOnUserIfPossible()
+                Task {
+                    await viewModel.refreshPOIs()
+                    fitVisibleAnnotations()
+                }
             }
             .onChange(of: viewModel.pois.count) { _, _ in
                 fitVisibleAnnotations()
@@ -46,12 +54,6 @@ struct MapScreenView: View {
     private var mapCard: some View {
         ZStack(alignment: .topTrailing) {
             mapContent
-                .mapControls {
-                    if locationAvailable {
-                        MapUserLocationButton()
-                    }
-                    MapCompass()
-                }
                 .mapStyle(
                     .standard(
                         elevation: .flat,
@@ -119,7 +121,7 @@ struct MapScreenView: View {
 
     private var poiFilterPanel: some View {
         VStack(alignment: .trailing, spacing: 8) {
-            poiFilterButton(title: "None", icon: "xmark", type: nil)
+            poiFilterButton(title: "All", icon: "square.grid.2x2", type: nil)
 
             ForEach(MapScreenViewModel.discoverableCategories) { type in
                 poiFilterButton(title: type.displayName, icon: icon(for: type), type: type)

@@ -64,7 +64,7 @@ struct PlacesLibraryView: View {
                     .italic()
                     .foregroundStyle(.secondary)
 
-                Text("My places")
+                Text("My Places")
                     .font(.system(size: 34, weight: .bold))
                     .foregroundStyle(Color(red: 0.18, green: 0.13, blue: 0.10))
             }
@@ -80,7 +80,7 @@ struct PlacesLibraryView: View {
     private var todayStamp: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, d MMMM / h:mma"
-        return formatter.string(from: Date()).lowercased()
+        return formatter.string(from: Date())
     }
 
     private var emptyState: some View {
