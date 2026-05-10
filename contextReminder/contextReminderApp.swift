@@ -89,6 +89,7 @@ struct contextReminderApp: App {
 
                 let reminderMonitoringService = ReminderMonitoringService(
                 reminderStore: reminderStore,
+                placeStore: placeStore,
                 geofenceCoordinator: geofenceCoordinator,
                 locationProvider: locationProvider
                 )
@@ -128,10 +129,17 @@ struct contextReminderApp: App {
     }
 
     private var remindersViewModel: RemindersViewModel {
-        RemindersViewModel(
-            reminderStore: reminderStore,
+        
+        let vm = RemindersViewModel(
+            reminderStore:reminderStore,
             placeStore: placeStore
         )
+        
+        vm.onRemindersChanged = {
+            reminderMonitoringService?.refreshMonitoring()
+        }
+        
+        return vm
     }
     
 }

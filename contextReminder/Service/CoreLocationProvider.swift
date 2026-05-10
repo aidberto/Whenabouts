@@ -118,10 +118,15 @@ extension CoreLocationProvider: CLLocationManagerDelegate {
     /// Called whenever the user grants, denies, or changes location permission.
     /// Update our published state and start streaming locations if we now have permission.
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        
+        print("Authorization Changed")
+        print(manager.authorizationStatus.rawValue)
+        
         authorization = Self.translate(manager.authorizationStatus)
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             // Without this call, no location updates would ever arrive.
+            print("Starting location updates")
             manager.startUpdatingLocation()
         default:
             break
@@ -131,6 +136,7 @@ extension CoreLocationProvider: CLLocationManagerDelegate {
     /// Called whenever iOS has a new GPS fix. iOS sometimes batches several
     /// updates together, so we just take the most recent.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
         guard let location = locations.last else { return }
         currentCoordinate = LocationCoordinate(
             latitude: location.coordinate.latitude,

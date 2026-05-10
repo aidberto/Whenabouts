@@ -14,15 +14,18 @@ final class ReminderMonitoringService{
     private let reminderStore: any ReminderStore
     private let geofenceCoordinator: GeofenceCoordinator
     private let locationProvider: any LocationProviding
+    private let placeStore: any PlaceStore
     
     private var cancellables = Set<AnyCancellable>()
     
     init(
         reminderStore: any ReminderStore,
+        placeStore: any PlaceStore,
         geofenceCoordinator: GeofenceCoordinator,
         locationProvider: any LocationProviding
     ) {
         self.reminderStore = reminderStore
+        self.placeStore = placeStore
         self.geofenceCoordinator = geofenceCoordinator
         self.locationProvider = locationProvider
         
@@ -37,23 +40,22 @@ final class ReminderMonitoringService{
     
     func refreshMonitoring() {
         
-        var seenTriggerIds = Set<UUID>()
+        print("Reminder Count: \(reminderStore.reminders.count)")
         
-        let triggers = reminderStore.reminders.compactMap { reminder -> MonitoredTrigger? in
+        let triggers = reminderStore.reminders.flatMap { reminder -> [MonitoredTrigger] in
+            
+            
             
             guard !reminder.isCompleted else {
-                return nil
-            }
-            
-            guard seenTriggerIds.insert(reminder.trigger.id).inserted else {
-                return nil
+                return []
             }
             
             switch reminder.trigger.target {
                 
             case .place(let place):
                 
-                return MonitoredTrigger(
+                return [
+                        MonitoredTrigger(
                     id: reminder.trigger.id,
                     coordinate: LocationCoordinate(
                         latitude: place.latitude,
@@ -63,17 +65,36 @@ final class ReminderMonitoringService{
                     triggerType: reminder.trigger.triggerType,
                     lastTriggeredAt: nil
                     )
+                ]
                 
-            case .placeType:
-                return nil
+            case .placeType(let placeType):
+                let matchingPlaces = placeStore.places.filter {
+                    $0.placeType == placeType
+                }
+                
+                return matchingPlaces.map { place in
+                    
+                    MonitoredTrigger(
+                    id: UUID(),
+                    coordinate: LocationCoordinate(
+                    latitude: place.latitude,
+                    longitude: place.longitude
+                    ),
+                    radius: place.radius,
+                    triggerType: reminder.trigger.triggerType,
+                    lastTriggeredAt: nil
+                    )
+
+                }
             }
         }
         
-        
+        print("Generated \(triggers.count) monitored triggers")
         
         geofenceCoordinator.setActiveTriggers(
             triggers,
             userLocation: locationProvider.currentCoordinate
         )
     }
+    
 }

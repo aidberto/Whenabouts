@@ -21,6 +21,7 @@ final class ReminderTriggerCoordinator {
     }
     
     func handleEvent(_ event: GeofenceEvent){
+        print("Handling geofence for trigger: \(event.triggerId)")
         
         let matchingReminders = reminderStore.reminders.filter { reminder in
             
@@ -32,12 +33,24 @@ final class ReminderTriggerCoordinator {
         
         for reminder in matchingReminders {
             
-            notificationManager.sendReminderNotification(
-                title: reminder.title,
-                body: reminder.notes.isEmpty ? "You have a reminder."
-                : reminder.notes,
-                identifier: reminder.id.uuidString
-            )
+            Task {
+                
+                let isAuthorized =
+                await notificationManager.notificationPermissionStatus()
+                
+                guard isAuthorized else {
+                    print("Notification not Authorized")
+                    return
+                }
+                
+                notificationManager.sendReminderNotification(
+                    title: reminder.title,
+                    body: reminder.notes.isEmpty
+                    ? "You have a Reminder"
+                    : reminder.notes,
+                    identifier: reminder.id.uuidString
+                )
+            }
         }
     }
 }
