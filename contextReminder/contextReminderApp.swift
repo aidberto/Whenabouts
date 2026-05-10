@@ -5,6 +5,13 @@
 
 import SwiftUI
 
+enum AppTab: Hashable {
+    case reminders
+    case places
+    case map
+    case debug
+}
+
 @main
 struct contextReminderApp: App {
     // The single saved-Places store, kept alive for the whole app session.
@@ -13,6 +20,7 @@ struct contextReminderApp: App {
 
     // Watches the user's location and exposes auth state to the rest of the app.
     @StateObject private var locationProvider = CoreLocationProvider()
+    @State private var selectedTab: AppTab = .reminders
 
     // Helpers for the Place creation sheet (address search, reverse geocoding,
     // POI lookup). Plain `let` because they have no state of their own.
@@ -22,15 +30,18 @@ struct contextReminderApp: App {
 
     var body: some Scene {
         WindowGroup {
-            TabView {
-                RemindersView(viewModel: remindersViewModel)
+            TabView(selection: $selectedTab) {
+                RemindersView(viewModel: remindersViewModel, selectedTab: $selectedTab)
                     .tabItem { Label("Reminders", systemImage: "bell") }
+                    .tag(AppTab.reminders)
 
                 PlacesLibraryView(viewModel: placesLibraryViewModel)
                     .tabItem { Label("Places", systemImage: "list.bullet") }
+                    .tag(AppTab.places)
 
                 MapScreenView(viewModel: mapScreenViewModel)
                     .tabItem { Label("Map", systemImage: "map") }
+                    .tag(AppTab.map)
 
                 #if DEBUG
                 // Debug tab only appears in development builds, never in release.
@@ -39,6 +50,7 @@ struct contextReminderApp: App {
                     placeStore: placeStore
                 )
                 .tabItem { Label("Debug", systemImage: "ladybug") }
+                .tag(AppTab.debug)
                 #endif
             }
             .onAppear {
