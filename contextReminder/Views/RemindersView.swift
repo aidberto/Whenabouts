@@ -82,7 +82,7 @@ struct RemindersView: View {
                 .foregroundStyle(.secondary)
 
             Text("Your Whenabouts")
-                .font(.system(size: 42, weight: .bold, design: .serif))
+                .font(.system(size: 34, weight: .bold, design: .serif))
                 .italic()
                 .foregroundStyle(Color(red: 0.18, green: 0.13, blue: 0.10))
         }
@@ -96,16 +96,13 @@ struct RemindersView: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Text("🌿")
-                .font(.system(size: 42))
-
             VStack(spacing: 6) {
                 Text("nothing on the list.")
                     .font(.system(size: 21, weight: .regular, design: .serif))
                     .italic()
                     .foregroundStyle(Color(red: 0.17, green: 0.14, blue: 0.11))
 
-                Text("You're caught up. Future-you will appreciate it.")
+                Text("You're all caught up")
                     .font(.system(size: 14, weight: .medium))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
@@ -510,102 +507,403 @@ struct ReminderFormView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                detailsSection
-                triggerSection
-                checklistSection
+            ZStack {
+                paperBackground
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 22) {
+                        Text("Add new reminder")
+                            .font(.system(size: 28, weight: .regular, design: .serif))
+                            .italic()
+                            .foregroundStyle(Color(red: 0.24, green: 0.19, blue: 0.15))
+                            .padding(.top, 8)
+
+                        detailsSection
+                        triggerSection
+                        categorySection
+                        prioritySection
+                        notesSection
+                        checklistSection
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 28)
+                }
             }
-            .navigationTitle(reminder == nil ? "New Reminder" : "Edit Reminder")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .heavy))
+                            .foregroundStyle(Color(red: 0.18, green: 0.16, blue: 0.13))
+                            .frame(width: 48, height: 42)
+                            .background(.white.opacity(0.58), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button {
                         saveReminder()
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 16, weight: .heavy))
+                            .foregroundStyle(canSave ? Color(red: 0.18, green: 0.16, blue: 0.13) : .secondary.opacity(0.42))
+                            .frame(width: 48, height: 42)
+                            .background(.white.opacity(canSave ? 0.58 : 0.42), in: Capsule())
                     }
                     .disabled(!canSave)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Save")
                 }
             }
         }
     }
 
     private var detailsSection: some View {
-        Section("Details") {
-            TextField("Reminder title", text: $title)
-            TextField("Notes", text: $notes, axis: .vertical)
-                .lineLimit(2...4)
-            Picker("Category", selection: $category) {
-                ForEach(ReminderCategory.allCases) { category in
-                    Text(category.displayName).tag(category)
+        VStack(alignment: .leading, spacing: 6) {
+            TextField("Buy oat milk...", text: $title)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12))
+                .textInputAutocapitalization(.sentences)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(.black.opacity(0.04), lineWidth: 1)
+        )
+    }
+
+    private var triggerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            formSectionTitle("WHERE SHOULD IT FIRE?")
+
+            LazyVGrid(columns: tileColumns, spacing: 10) {
+                ForEach(places) { place in
+                    targetTile(
+                        icon: icon(for: place.placeType),
+                        title: place.name,
+                        subtitle: "place",
+                        tint: color(for: place.placeType),
+                        isSelected: targetChoice == .savedPlace && selectedPlaceId == place.id
+                    ) {
+                        targetChoice = .savedPlace
+                        selectedPlaceId = place.id
+                    }
+                }
+
+                if places.isEmpty {
+                    Text("Add a place before creating a saved-place reminder.")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .gridCellColumns(2)
+                }
+
+                ForEach(MapScreenViewModel.discoverableCategories) { placeType in
+                    targetTile(
+                        icon: icon(for: placeType),
+                        title: placeType.displayName.lowercased(),
+                        subtitle: "category",
+                        tint: color(for: placeType),
+                        isSelected: targetChoice == .placeType && selectedPlaceType == placeType
+                    ) {
+                        targetChoice = .placeType
+                        selectedPlaceType = placeType
+                    }
                 }
             }
-            Picker("Priority", selection: $priority) {
-                ForEach(ReminderPriority.allCases) { priority in
-                    Text(priority.displayName).tag(priority)
+
+            formSectionTitle("WHEN YOU...")
+                .padding(.top, 4)
+
+            HStack(spacing: 10) {
+                ForEach(TriggerType.allCases) { type in
+                    optionButton(
+                        icon: type == .arriving ? "arrow.left" : "arrow.right",
+                        title: type == .arriving ? "Arrive" : "Leave",
+                        isSelected: triggerType == type
+                    ) {
+                        triggerType = type
+                    }
                 }
             }
         }
     }
 
-    private var triggerSection: some View {
-        Section("Trigger") {
-            Picker("When", selection: $triggerType) {
-                ForEach(TriggerType.allCases) { triggerType in
-                    Text(triggerType.displayName).tag(triggerType)
-                }
-            }
+    private var categorySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            formSectionTitle("WHAT IS IT ABOUT?")
 
-            Picker("Target", selection: $targetChoice) {
-                ForEach(TargetChoice.allCases) { choice in
-                    Text(choice.displayName).tag(choice)
-                }
-            }
-
-            if targetChoice == .savedPlace {
-                if places.isEmpty {
-                    Text("Add a place before creating a saved-place reminder.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Picker("Place", selection: $selectedPlaceId) {
-                        ForEach(places) { place in
-                            Text(place.name).tag(Optional(place.id))
-                        }
-                    }
-                }
-            } else {
-                Picker("Place Type", selection: $selectedPlaceType) {
-                    ForEach(MapScreenViewModel.discoverableCategories) { placeType in
-                        Text(placeType.displayName).tag(placeType)
+            LazyVGrid(columns: tileColumns, spacing: 10) {
+                ForEach(ReminderCategory.allCases) { option in
+                    optionTile(
+                        title: option.displayName,
+                        subtitle: optionSubtitle(for: option),
+                        isSelected: category == option
+                    ) {
+                        category = option
                     }
                 }
             }
+        }
+    }
+
+    private var prioritySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            formSectionTitle("HOW URGENT?")
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10) {
+                ForEach(ReminderPriority.allCases) { option in
+                    optionTile(
+                        title: option.displayName,
+                        subtitle: prioritySubtitle(for: option),
+                        isSelected: priority == option
+                    ) {
+                        priority = option
+                    }
+                }
+            }
+        }
+    }
+
+    private var notesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            formSectionTitle("NOTES")
+
+            TextField("Add extra detail...", text: $notes, axis: .vertical)
+                .font(.system(size: 15, weight: .semibold))
+                .lineLimit(3...5)
+                .padding(16)
+                .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 
     private var checklistSection: some View {
-        Section("Checklist") {
+        VStack(alignment: .leading, spacing: 12) {
+            formSectionTitle("CHECKLIST")
+
             HStack {
                 TextField("Add checklist item", text: $newChecklistItem)
+                    .font(.system(size: 14, weight: .semibold))
+
                 Button("Add") {
                     addChecklistItem()
                 }
+                .font(.system(size: 13, weight: .bold))
                 .disabled(newChecklistItem.trimmingCharacters(in: .whitespaces).isEmpty)
             }
+            .padding(14)
+            .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
             ForEach(checklist) { item in
-                Button {
-                    toggleChecklistItem(item)
-                } label: {
-                    HStack {
+                HStack {
+                    Button {
+                        toggleChecklistItem(item)
+                    } label: {
                         Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
                         Text(item.title)
+                            .strikethrough(item.isCompleted)
+                        Spacer()
                     }
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .buttonStyle(.plain)
+
+                    Button {
+                        deleteChecklistItem(item)
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 32, height: 32)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .foregroundStyle(.primary)
+                .padding(.leading, 14)
+                .padding(.trailing, 8)
+                .padding(.vertical, 8)
+                .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-            .onDelete(perform: deleteChecklistItems)
+        }
+    }
+
+    private var paperBackground: some View {
+        LinearGradient(
+            colors: [
+                Color(red: 0.98, green: 0.95, blue: 0.90),
+                Color(red: 1.00, green: 0.98, blue: 0.94)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
+    }
+
+    private var tileColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
+    }
+
+    private func formSectionTitle(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 13, weight: .heavy))
+            .tracking(0.9)
+            .foregroundStyle(Color(red: 0.62, green: 0.58, blue: 0.51))
+    }
+
+    private func targetTile(
+        icon: String,
+        title: String,
+        subtitle: String,
+        tint: Color,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Text(icon)
+                    .font(.system(size: 19))
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(tint.opacity(isSelected ? 0.50 : 0.30)))
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .heavy))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.82)
+                    Text(subtitle)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.secondary.opacity(0.72))
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(minHeight: 58)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(isSelected ? tint.opacity(0.38) : .white)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(isSelected ? tint.opacity(0.95) : tint.opacity(0.16), lineWidth: isSelected ? 1.4 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func optionButton(
+        icon: String,
+        title: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 7) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .bold))
+                Text(title)
+                    .font(.system(size: 13, weight: .heavy))
+            }
+            .foregroundStyle(isSelected ? .white : Color(red: 0.20, green: 0.17, blue: 0.13))
+            .frame(maxWidth: .infinity)
+            .frame(height: 64)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? Color(red: 0.11, green: 0.10, blue: 0.08) : .white)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(.black.opacity(isSelected ? 0 : 0.05), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func optionTile(
+        title: String,
+        subtitle: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 14, weight: .heavy))
+                Text(subtitle)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.secondary.opacity(0.74))
+                    .lineLimit(2)
+            }
+            .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12))
+            .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(isSelected ? Color(red: 0.94, green: 0.90, blue: 0.82) : .white)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(isSelected ? Color(red: 0.22, green: 0.19, blue: 0.15) : .black.opacity(0.04), lineWidth: isSelected ? 1.2 : 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func icon(for type: PlaceType) -> String {
+        switch type {
+        case .home: return "🏠"
+        case .work: return "🎓"
+        case .supermarket: return "🛒"
+        case .pharmacy: return "💊"
+        case .postOffice: return "📦"
+        case .custom: return "📍"
+        }
+    }
+
+    private func color(for type: PlaceType) -> Color {
+        switch type {
+        case .home:
+            return Color(red: 1.00, green: 0.76, blue: 0.65)
+        case .work:
+            return Color(red: 0.68, green: 0.85, blue: 1.00)
+        case .supermarket:
+            return Color(red: 0.78, green: 1.00, blue: 0.24)
+        case .pharmacy:
+            return Color(red: 0.82, green: 0.72, blue: 1.00)
+        case .postOffice:
+            return Color(red: 1.00, green: 0.84, blue: 0.48)
+        case .custom:
+            return Color(red: 0.88, green: 0.94, blue: 0.82)
+        }
+    }
+
+    private func optionSubtitle(for category: ReminderCategory) -> String {
+        switch category {
+        case .grocery: return "shops and errands"
+        case .home: return "household"
+        case .health: return "medicine and care"
+        case .work: return "uni or work"
+        case .general: return "anything else"
+        }
+    }
+
+    private func prioritySubtitle(for priority: ReminderPriority) -> String {
+        switch priority {
+        case .low: return "quiet reminder"
+        case .normal: return "usual nudge"
+        case .high: return "important"
+        case .urgent: return "tell me right away"
         }
     }
 
@@ -638,6 +936,10 @@ struct ReminderFormView: View {
         for index in offsets.sorted(by: >) {
             checklist.remove(at: index)
         }
+    }
+
+    private func deleteChecklistItem(_ item: ChecklistItem) {
+        checklist.removeAll { $0.id == item.id }
     }
 
     private func saveReminder() {
