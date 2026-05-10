@@ -14,6 +14,7 @@ struct RemindersView: View {
     @Binding var selectedTab: AppTab
     @State private var reminderBeingEdited: Reminder?
     @State private var isShowingNewReminder = false
+    @State private var completingReminderID: UUID?
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -80,7 +81,7 @@ struct RemindersView: View {
                 .italic()
                 .foregroundStyle(.secondary)
 
-            Text(activeReminders.isEmpty ? "inbox zero" : "here now")
+            Text("Your Whenabouts")
                 .font(.system(size: 42, weight: .bold, design: .serif))
                 .italic()
                 .foregroundStyle(Color(red: 0.18, green: 0.13, blue: 0.10))
@@ -170,11 +171,12 @@ struct RemindersView: View {
                     reminderRow(reminder)
                     .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                     .onTapGesture {
+                        guard completingReminderID != reminder.id else { return }
                         reminderBeingEdited = reminder
                     }
                     .swipeActions(edge: .leading, allowsFullSwipe: true) {
                         Button {
-                            viewModel.toggleCompleted(reminder)
+                            complete(reminder)
                         } label: {
                             Label("Done", systemImage: "checkmark")
                         }
@@ -193,7 +195,9 @@ struct RemindersView: View {
     }
 
     private func reminderRow(_ reminder: Reminder) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+        let isCompleting = completingReminderID == reminder.id
+
+        return HStack(alignment: .top, spacing: 14) {
             Text(icon(for: reminder))
                 .font(.system(size: 24))
                 .frame(width: 48, height: 48)
@@ -256,19 +260,42 @@ struct RemindersView: View {
             Spacer(minLength: 8)
 
             Button {
-                viewModel.toggleCompleted(reminder)
+                complete(reminder)
             } label: {
-                Circle()
-                    .stroke(cardTextColor(for: reminder).opacity(0.75), lineWidth: 1.3)
-                    .frame(width: 34, height: 34)
+                ZStack {
+                    Circle()
+                        .fill(isCompleting ? cardTextColor(for: reminder) : .clear)
+                    Circle()
+                        .stroke(cardTextColor(for: reminder).opacity(0.75), lineWidth: 1.3)
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white)
+                        .scaleEffect(isCompleting ? 1 : 0.45)
+                        .opacity(isCompleting ? 1 : 0)
+                }
+                .frame(width: 34, height: 34)
             }
             .buttonStyle(.plain)
+            .disabled(isCompleting)
         }
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(cardColor(for: reminder))
         )
+        .overlay {
+            if isCompleting {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 44, weight: .bold))
+                    .foregroundStyle(cardTextColor(for: reminder))
+                    .padding(10)
+                    .background(.white.opacity(0.78), in: Circle())
+                    .transition(.scale(scale: 0.72).combined(with: .opacity))
+            }
+        }
+        .scaleEffect(isCompleting ? 0.96 : 1)
+        .opacity(isCompleting ? 0.82 : 1)
+        .animation(.spring(response: 0.30, dampingFraction: 0.72), value: isCompleting)
     }
 
     private func targetLine(for reminder: Reminder) -> String {
@@ -397,6 +424,21 @@ struct RemindersView: View {
             return
         }
         viewModel.delete(at: IndexSet(integer: index))
+    }
+
+    private func complete(_ reminder: Reminder) {
+        guard completingReminderID != reminder.id else { return }
+
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.66)) {
+            completingReminderID = reminder.id
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) {
+            withAnimation(.easeInOut(duration: 0.22)) {
+                viewModel.toggleCompleted(reminder)
+                completingReminderID = nil
+            }
+        }
     }
 }
 
