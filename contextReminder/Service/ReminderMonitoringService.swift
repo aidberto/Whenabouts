@@ -69,10 +69,11 @@ final class ReminderMonitoringService{
             }
         }
         
+        print("Generated \(triggers.count) monitored triggers")
+        
         geofenceCoordinator.setActiveTriggers(
             triggers,
             userLocation: locationProvider.currentCoordinate
         )
     }
-    
 }

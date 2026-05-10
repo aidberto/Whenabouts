@@ -19,38 +19,14 @@ struct contextReminderApp: App {
     private let addressSearcher: any AddressSearching = MKLocalAddressSearcher()
     private let geocoder: any Geocoding = CLGeocoder_Geocoder()
     private let poiDiscovery: any POIDiscovering = MKLocalPOIDiscovery()
+    
     private let notificationManager = LocalNotificationManager.shared
-    private let geofenceCoordinator: GeofenceCoordinator
-    private let reminderTriggerCoordinator: ReminderTriggerCoordinator
     
-    init(){
+    @State private var hasInitializedServices = false
+    @State private var geofenceCoordinator: GeofenceCoordinator?
+    @State private var reminderTriggerCoordinator: ReminderTriggerCoordinator?
+    @State private var reminderMonitoringService: ReminderMonitoringService?
         
-        let locationProvider = CoreLocationProvider()
-        let reminderStore = JSONReminderStore()
-        
-        let geofenceCoordinator = GeofenceCoordinator(monitor: locationProvider)
-        
-        let reminderTriggerCoordinator = ReminderTriggerCoordinator(
-            reminderStore: reminderStore,
-            notificationManager: notificationManager
-            )
-        
-        geofenceCoordinator.onEvent = { event in
-            reminderTriggerCoordinator.handleEvent(event)
-        }
-        
-        self._locationProvider = StateObject(
-            wrappedValue: locationProvider
-        )
-        
-        self._reminderStore = StateObject(
-            wrappedValue: reminderStore
-        )
-        
-        self.geofenceCoordinator = geofenceCoordinator
-        self.reminderTriggerCoordinator = reminderTriggerCoordinator
-    }
-    
     var body: some Scene {
         WindowGroup {
             TabView {
@@ -75,12 +51,46 @@ struct contextReminderApp: App {
             .onAppear {
                 // Ask for location permission on first launch so the app is
                 // ready to use straight away.
-                Task {
-                    _ = await notificationManager.requestPermission()
-                }
                 
+                guard !hasInitializedServices else {
+                return
+                }
+
+                hasInitializedServices = true
+
+                Task {
+                _ = await notificationManager.requestPermission()
+                }
+
                 if locationProvider.authorization == .notDetermined {
-                    locationProvider.requestWhenInUseAuthorization()
+                locationProvider.requestWhenInUseAuthorization()
+                }
+
+                let geofenceCoordinator = GeofenceCoordinator(
+                monitor: locationProvider
+                )
+
+                let reminderTriggerCoordinator = ReminderTriggerCoordinator(
+                reminderStore: reminderStore,
+                notificationManager: notificationManager
+                )
+
+                let reminderMonitoringService = ReminderMonitoringService(
+                reminderStore: reminderStore,
+                geofenceCoordinator: geofenceCoordinator,
+                locationProvider: locationProvider
+                )
+
+                geofenceCoordinator.onEvent = { event in
+                reminderTriggerCoordinator.handleEvent(event)
+                }
+
+                self.geofenceCoordinator = geofenceCoordinator
+                self.reminderTriggerCoordinator = reminderTriggerCoordinator
+                self.reminderMonitoringService = reminderMonitoringService
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.reminderMonitoringService?.refreshMonitoring()
                 }
             }
         }

@@ -45,6 +45,11 @@ final class CoreLocationProvider: NSObject, LocationProviding {
         // Read the current permission state right now so the UI starts up with
         // the right value (otherwise we'd briefly show ".notDetermined").
         authorization = Self.translate(manager.authorizationStatus)
+        
+        if manager.authorizationStatus == .authorizedWhenInUse ||
+            manager.authorizationStatus == .authorizedAlways {
+            manager.startUpdatingLocation()
+        }
     }
 
     /// Show the iOS permission prompt. Only does anything the first time.
