@@ -15,6 +15,8 @@ final class RemindersViewModel: ObservableObject {
     private let reminderStore: any ReminderStore
     private let placeStore: any PlaceStore
     private var cancellables = Set<AnyCancellable>()
+    
+    var onRemindersChanged: (() -> Void)?
 
     var reminders: [Reminder] {
         reminderStore.reminders.sorted { first, second in
@@ -47,12 +49,15 @@ final class RemindersViewModel: ObservableObject {
         for index in offsets {
             reminderStore.delete(id: currentReminders[index].id)
         }
+        
+        onRemindersChanged?()
     }
 
     func toggleCompleted(_ reminder: Reminder) {
         var updated = reminder
         updated.isCompleted.toggle()
         reminderStore.update(updated)
+        onRemindersChanged?()
     }
 
     func save(_ reminder: Reminder) {
@@ -61,5 +66,7 @@ final class RemindersViewModel: ObservableObject {
         } else {
             reminderStore.add(reminder)
         }
+        
+        onRemindersChanged?()
     }
 }

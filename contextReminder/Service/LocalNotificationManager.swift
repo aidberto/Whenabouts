@@ -32,6 +32,8 @@ final class LocalNotificationManager: NotificationManaging {
     
     func sendReminderNotification(title: String, body: String, identifier: String) {
         
+        print("Sending notification \(title)")
+        
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
