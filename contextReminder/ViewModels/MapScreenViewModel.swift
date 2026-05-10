@@ -79,4 +79,10 @@ final class MapScreenViewModel: ObservableObject {
         selectedPOICategory = category
         Task { await refreshPOIs() }
     }
+
+    /// Async variant for views that need to react after the refreshed POIs exist.
+    func selectCategoryAndRefresh(_ category: PlaceType?) async {
+        selectedPOICategory = category
+        await refreshPOIs()
+    }
 }

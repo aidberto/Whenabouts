@@ -35,11 +35,11 @@ struct contextReminderApp: App {
                     .tabItem { Label("Reminders", systemImage: "bell") }
                     .tag(AppTab.reminders)
 
-                PlacesLibraryView(viewModel: placesLibraryViewModel)
+                PlacesLibraryView(viewModel: placesLibraryViewModel, selectedTab: $selectedTab)
                     .tabItem { Label("Places", systemImage: "list.bullet") }
                     .tag(AppTab.places)
 
-                MapScreenView(viewModel: mapScreenViewModel)
+                MapScreenView(viewModel: mapScreenViewModel, selectedTab: $selectedTab)
                     .tabItem { Label("Map", systemImage: "map") }
                     .tag(AppTab.map)
 

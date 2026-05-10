@@ -75,23 +75,29 @@ struct RemindersView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(todayStamp)
-                .font(.system(size: 12, weight: .medium, design: .serif))
-                .italic()
-                .foregroundStyle(.secondary)
+        HStack(alignment: .top, spacing: 16) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(todayStamp)
+                    .font(.system(size: 12, weight: .medium, design: .serif))
+                    .foregroundStyle(.secondary)
 
-            Text("Your Whenabouts")
-                .font(.system(size: 34, weight: .bold, design: .serif))
-                .italic()
-                .foregroundStyle(Color(red: 0.18, green: 0.13, blue: 0.10))
+                Text("My Whenabouts")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundStyle(Color(red: 0.18, green: 0.13, blue: 0.10))
+            }
+
+            Spacer(minLength: 8)
+
+            addButton {
+                isShowingNewReminder = true
+            }
         }
     }
 
     private var todayStamp: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, d MMMM / h:mma"
-        return formatter.string(from: Date()).lowercased()
+        return formatter.string(from: Date())
     }
 
     private var emptyState: some View {
@@ -108,25 +114,6 @@ struct RemindersView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 230)
             }
-
-            Button {
-                isShowingNewReminder = true
-            } label: {
-                Label("Add a reminder", systemImage: "plus")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Color(red: 0.08, green: 0.10, blue: 0.05))
-                    .padding(.horizontal, 22)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(Color(red: 0.78, green: 1.00, blue: 0.24))
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(Color(red: 0.10, green: 0.10, blue: 0.08), lineWidth: 1.8)
-                    )
-            }
-            .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 34)
@@ -368,21 +355,6 @@ struct RemindersView: View {
         HStack(spacing: 18) {
             barItem("list.bullet", "Reminders", tab: .reminders)
             barItem("square.stack.3d.up", "Places", tab: .places)
-
-            Button {
-                isShowingNewReminder = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(Color(red: 0.08, green: 0.10, blue: 0.05))
-                    .frame(width: 56, height: 56)
-                    .background(
-                        Circle().fill(Color(red: 0.78, green: 1.00, blue: 0.24))
-                    )
-                    .overlay(Circle().stroke(.black.opacity(0.72), lineWidth: 2))
-            }
-            .buttonStyle(.plain)
-
             barItem("map", "Map", tab: .map)
             #if DEBUG
             barItem("ladybug", "Debug", tab: .debug)
@@ -394,6 +366,21 @@ struct RemindersView: View {
         .background(.ultraThinMaterial, in: Capsule())
         .padding(.horizontal, 14)
         .padding(.bottom, -8)
+    }
+
+    private func addButton(action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: "plus")
+                .font(.system(size: 19, weight: .heavy))
+                .foregroundStyle(Color(red: 0.08, green: 0.10, blue: 0.05))
+                .frame(width: 46, height: 46)
+                .background(
+                    Circle().fill(Color(red: 0.78, green: 1.00, blue: 0.24))
+                )
+                .overlay(Circle().stroke(Color(red: 0.10, green: 0.10, blue: 0.08), lineWidth: 1.8))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Add reminder")
     }
 
     private func barItem(_ icon: String, _ title: String, tab: AppTab) -> some View {
