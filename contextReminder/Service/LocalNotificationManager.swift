@@ -8,11 +8,14 @@
 import Foundation
 import UserNotifications
 
-final class LocalNotificationManager: NotificationManaging {
+final class LocalNotificationManager: NSObject, NotificationManaging, UNUserNotificationCenterDelegate {
     
     static let shared = LocalNotificationManager()
     
-    private init() {}
+    private override init() {
+        super.init()
+        UNUserNotificationCenter.current().delegate = self
+    }
     
     func requestPermission() async -> Bool {
         do {
@@ -82,5 +85,12 @@ final class LocalNotificationManager: NotificationManaging {
 
     func cancelNotification(identifier: String) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound, .list]
     }
 }

@@ -59,7 +59,8 @@ final class PlaceCreationViewModel: ObservableObject {
         location: any LocationProviding,
         searcher: any AddressSearching,
         geocoder: any Geocoding,
-        editing: Place? = nil
+        editing: Place? = nil,
+        seedSuggestion: AddressSuggestion? = nil
     ) {
         self.store = store
         self.location = location
@@ -76,6 +77,14 @@ final class PlaceCreationViewModel: ObservableObject {
                 longitude: existing.longitude
             )
             self.pickerMode = .map
+        } else if let suggestion = seedSuggestion {
+            self.editingId = nil
+            self.name = suggestion.title
+            self.coordinate = suggestion.coordinate
+            self.searchQuery = suggestion.title
+            self.searchResults = [suggestion]
+            self.pinnedAddress = suggestion.subtitle.isEmpty ? nil : suggestion.subtitle
+            self.pickerMode = .search
         } else {
             // New Place — start blank, optionally seed coordinate with current location.
             self.editingId = nil

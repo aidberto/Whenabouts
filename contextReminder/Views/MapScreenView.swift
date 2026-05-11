@@ -18,7 +18,9 @@ struct MapScreenView: View {
     /// Where the map is currently looking. We move it to the user's location
     /// once we have one, otherwise it auto-fits to the pins.
     @State private var cameraPosition: MapCameraPosition = .automatic
-    @State private var isShowingPOIFilters = false
+    @State private var searchQuery = ""
+    @State private var selectedSearchResult: AddressSuggestion?
+    @State private var creationViewModel: PlaceCreationViewModel?
 
     var body: some View {
         NavigationStack {
@@ -42,17 +44,23 @@ struct MapScreenView: View {
             .onChange(of: viewModel.pois.count) { _, _ in
                 fitVisibleAnnotations()
             }
+            .onChange(of: searchQuery) { _, newValue in
+                viewModel.performSearch(query: newValue)
+            }
             .safeAreaInset(edge: .bottom) {
                 quickAddBar
             }
             .toolbar(.hidden, for: .tabBar)
+        }
+        .sheet(item: $creationViewModel) { vm in
+            PlaceCreationView(viewModel: vm)
         }
     }
 
     // MARK: - Map content
 
     private var mapCard: some View {
-        ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .top) {
             mapContent
                 .mapStyle(
                     .standard(
@@ -64,9 +72,9 @@ struct MapScreenView: View {
                 )
                 .ignoresSafeArea()
 
-            poiFilterControl
-                .padding(.top, 48)
-                .padding(.trailing, 14)
+            mapSearchAndFilters
+                .padding(.top, 58)
+                .padding(.horizontal, 14)
         }
     }
 
@@ -80,7 +88,19 @@ struct MapScreenView: View {
             }
             ForEach(viewModel.pois) { poi in
                 Annotation(poi.name, coordinate: poi.coordinate2D) {
-                    pinView(for: poi.placeType, dimmed: true)
+                    pinButton(for: suggestion(from: poi), type: poi.placeType, dimmed: true)
+                }
+            }
+            if let selectedSearchResult {
+                Annotation(selectedSearchResult.title, coordinate: selectedSearchResult.coordinate.coordinate2D) {
+                    Button {
+                        presentCreationView(for: selectedSearchResult)
+                    } label: {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12), .white)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             if locationAvailable {
@@ -90,76 +110,133 @@ struct MapScreenView: View {
         .tint(Color(red: 0.78, green: 1.00, blue: 0.24))
     }
 
-    // MARK: - Search Menu
+    // MARK: - Search + Filters
 
-    private var poiFilterControl: some View {
-        VStack(alignment: .trailing, spacing: 10) {
-            Button {
-                withAnimation(.spring(response: 0.28, dampingFraction: 0.78)) {
-                    isShowingPOIFilters.toggle()
+    private var mapSearchAndFilters: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.secondary)
+
+                TextField("Search map...", text: $searchQuery)
+                    .font(.system(size: 15, weight: .semibold))
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+
+                Divider()
+                    .frame(height: 24)
+
+                Button {
+                    centreOnUserIfPossible()
+                } label: {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color(red: 0.28, green: 0.23, blue: 0.16))
+                        .frame(width: 24, height: 24)
                 }
-            } label: {
-                Image(systemName: "square.stack.3d.up")
-                    .font(.system(size: 23, weight: .semibold))
-                    .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12))
-                    .frame(width: 58, height: 58)
-                    .background(.white.opacity(0.86), in: Circle())
-                    .overlay(
-                        Circle()
-                            .stroke(Color(red: 0.78, green: 0.73, blue: 0.64).opacity(0.35), lineWidth: 1)
-                    )
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(viewModel.selectedPOICategory?.displayName ?? "Search nearby places")
+            .padding(.horizontal, 16)
+            .frame(height: 54)
+            .background(.white.opacity(0.92), in: Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color(red: 0.78, green: 0.73, blue: 0.64).opacity(0.28), lineWidth: 1)
+            )
 
-            if isShowingPOIFilters {
-                poiFilterPanel
-                    .transition(.move(edge: .top).combined(with: .opacity))
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    poiFilterChip(title: "All", icon: "square.grid.2x2", type: nil)
+
+                    ForEach(MapScreenViewModel.discoverableCategories) { type in
+                        poiFilterChip(title: type.displayName, icon: icon(for: type), type: type)
+                    }
+                }
+                .padding(.horizontal, 2)
+            }
+
+            if !viewModel.searchResults.isEmpty && !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                searchResultsPanel
             }
         }
     }
 
-    private var poiFilterPanel: some View {
-        VStack(alignment: .trailing, spacing: 8) {
-            poiFilterButton(title: "All", icon: "square.grid.2x2", type: nil)
+    private var searchResultsPanel: some View {
+        VStack(spacing: 0) {
+            ForEach(viewModel.searchResults) { result in
+                Button {
+                    selectSearchResult(result)
+                } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 18, height: 18)
 
-            ForEach(MapScreenViewModel.discoverableCategories) { type in
-                poiFilterButton(title: type.displayName, icon: icon(for: type), type: type)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(result.title)
+                                .font(.system(size: 14, weight: .heavy))
+                                .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12))
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            if !result.subtitle.isEmpty {
+                                Text(result.subtitle)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if result.id != viewModel.searchResults.last?.id {
+                    Divider()
+                        .padding(.leading, 44)
+                }
             }
         }
-        .padding(10)
-        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color(red: 0.78, green: 0.73, blue: 0.64).opacity(0.35), lineWidth: 1)
+                .stroke(Color(red: 0.78, green: 0.73, blue: 0.64).opacity(0.24), lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.06), radius: 20, x: 0, y: 10)
     }
 
-    private func poiFilterButton(title: String, icon: String, type: PlaceType?) -> some View {
+    private func poiFilterChip(title: String, icon: String, type: PlaceType?) -> some View {
         let isSelected = viewModel.selectedPOICategory == type
+        let tint = type.map(color(for:)) ?? Color(red: 0.78, green: 1.00, blue: 0.24)
 
         return Button {
             Task {
                 await viewModel.selectCategoryAndRefresh(type)
                 fitVisibleAnnotations()
-                withAnimation(.spring(response: 0.24, dampingFraction: 0.82)) {
-                    isShowingPOIFilters = false
-                }
             }
         } label: {
             HStack(spacing: 8) {
-                Text(title)
-                    .font(.system(size: 13, weight: .bold))
                 Image(systemName: icon)
                     .font(.system(size: 13, weight: .bold))
-                    .frame(width: 18)
+                Text(title)
+                    .font(.system(size: 13, weight: .heavy))
             }
-            .foregroundStyle(isSelected ? Color(red: 0.08, green: 0.10, blue: 0.05) : Color(red: 0.18, green: 0.15, blue: 0.12))
+            .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12))
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .frame(height: 36)
             .background(
                 Capsule()
-                    .fill(isSelected ? Color(red: 0.78, green: 1.00, blue: 0.24).opacity(0.72) : Color(red: 0.98, green: 0.95, blue: 0.90).opacity(0.82))
+                    .fill(isSelected ? tint.opacity(0.85) : .white.opacity(0.88))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? tint.opacity(0.95) : tint.opacity(0.20), lineWidth: isSelected ? 1.3 : 1)
             )
         }
         .buttonStyle(.plain)
@@ -236,6 +313,21 @@ struct MapScreenView: View {
         )
     }
 
+    private func selectSearchResult(_ result: AddressSuggestion) {
+        selectedSearchResult = result
+        searchQuery = result.title
+        viewModel.clearSearchResults()
+
+        withAnimation(.easeInOut(duration: 0.28)) {
+            cameraPosition = .region(
+                MKCoordinateRegion(
+                    center: result.coordinate.coordinate2D,
+                    span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+                )
+            )
+        }
+    }
+
     private func fitVisibleAnnotations() {
         let places = visibleMapPlaces
         guard !places.isEmpty else {
@@ -284,6 +376,15 @@ struct MapScreenView: View {
             .overlay(Circle().stroke(textColor(for: type).opacity(dimmed ? 0.28 : 0.55), lineWidth: 1))
     }
 
+    private func pinButton(for suggestion: AddressSuggestion, type: PlaceType, dimmed: Bool) -> some View {
+        Button {
+            presentCreationView(for: suggestion)
+        } label: {
+            pinView(for: type, dimmed: dimmed)
+        }
+        .buttonStyle(.plain)
+    }
+
     private func icon(for type: PlaceType) -> String {
         switch type {
         case .home: return "house.fill"
@@ -328,6 +429,18 @@ struct MapScreenView: View {
             return Color(red: 0.30, green: 0.18, blue: 0.42)
         }
     }
+
+    private func suggestion(from place: Place) -> AddressSuggestion {
+        AddressSuggestion(
+            title: place.name,
+            subtitle: place.placeType.displayName,
+            coordinate: LocationCoordinate(latitude: place.latitude, longitude: place.longitude)
+        )
+    }
+
+    private func presentCreationView(for suggestion: AddressSuggestion) {
+        creationViewModel = viewModel.makeCreationViewModel(from: suggestion)
+    }
 }
 
 // MARK: - Place → coordinate
@@ -335,6 +448,12 @@ struct MapScreenView: View {
 /// Apple's Map view wants its coordinates in a specific Apple type.
 /// Place stores them as plain numbers; this little helper converts.
 private extension Place {
+    var coordinate2D: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+}
+
+private extension LocationCoordinate {
     var coordinate2D: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
@@ -352,6 +471,8 @@ struct MapScreenView_Previews: PreviewProvider {
                 viewModel: MapScreenViewModel(
                     store: InMemoryPlaceStore(),
                     location: ScriptedLocationProvider(authorization: .denied, currentCoordinate: nil),
+                    searcher: StaticAddressSearcher(),
+                    geocoder: StaticGeocoder(),
                     poiDiscovery: StaticPOIDiscovery()
                 ),
                 selectedTab: .constant(.map)
@@ -372,6 +493,8 @@ struct MapScreenView_Previews: PreviewProvider {
         let viewModel = MapScreenViewModel(
             store: store,
             location: location,
+            searcher: StaticAddressSearcher(),
+            geocoder: StaticGeocoder(),
             poiDiscovery: StaticPOIDiscovery()
         )
         viewModel.selectedPOICategory = .supermarket

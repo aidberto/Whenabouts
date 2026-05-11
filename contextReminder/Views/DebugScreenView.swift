@@ -14,6 +14,7 @@ import SwiftUI
 struct DebugScreenView: View {
     @ObservedObject var locationProvider: CoreLocationProvider
     @ObservedObject var placeStore: JSONPlaceStore
+    @State private var notificationSimulationStatus = "Not run"
 
     var body: some View {
         NavigationStack {
@@ -21,10 +22,25 @@ struct DebugScreenView: View {
                 authorizationSection
                 currentCoordinateSection
                 monitoredRegionsSection
+                notificationTestSection
                 placesSection
             }
             .navigationTitle("Debug")
             .listStyle(.insetGrouped)
+        }
+    }
+
+    private var notificationTestSection: some View {
+        Section("Notification Test") {
+            Button {
+                simulateGeofenceNotification()
+            } label: {
+                Label("Simulate geofence enter", systemImage: "location.circle")
+            }
+
+            Text(notificationSimulationStatus)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -117,6 +133,79 @@ struct DebugScreenView: View {
 
     private func formattedCoord(lat: Double, lon: Double) -> String {
         String(format: "%.5f, %.5f", lat, lon)
+    }
+
+    private func simulateGeofenceNotification() {
+        notificationSimulationStatus = "Requesting notification permission..."
+
+        Task {
+            let notificationManager = LocalNotificationManager.shared
+            let didGrantPermission = await notificationManager.requestPermission()
+            let alreadyAuthorized = await notificationManager.notificationPermissionStatus()
+            let isAuthorized = didGrantPermission || alreadyAuthorized
+
+            guard isAuthorized else {
+                notificationSimulationStatus = "Notifications are not authorized."
+                return
+            }
+
+            let triggerId = UUID()
+            let debugPlace = Place(
+                name: "Debug Geofence",
+                placeType: .custom,
+                latitude: locationProvider.currentCoordinate?.latitude ?? -33.8837,
+                longitude: locationProvider.currentCoordinate?.longitude ?? 151.2006,
+                radius: 150
+            )
+            let reminder = Reminder(
+                title: "Geofence test fired",
+                notes: "This came from the Debug screen geofence simulation.",
+                category: .general,
+                priority: .normal,
+                trigger: ReminderTrigger(
+                    id: triggerId,
+                    triggerType: .arriving,
+                    target: .place(debugPlace)
+                )
+            )
+
+            let fileURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent("debug-geofence-\(UUID().uuidString).json")
+            let reminderStore = JSONReminderStore(fileURL: fileURL)
+            reminderStore.add(reminder)
+
+            let fakeMonitor = FakeRegionMonitor()
+            let geofenceCoordinator = GeofenceCoordinator(
+                monitor: fakeMonitor,
+                debounceWindow: 0
+            )
+            let triggerCoordinator = ReminderTriggerCoordinator(
+                reminderStore: reminderStore,
+                notificationManager: notificationManager
+            )
+
+            geofenceCoordinator.onEvent = { event in
+                triggerCoordinator.handleEvent(event)
+            }
+            geofenceCoordinator.setActiveTriggers(
+                [
+                    MonitoredTrigger(
+                        id: triggerId,
+                        coordinate: LocationCoordinate(
+                            latitude: debugPlace.latitude,
+                            longitude: debugPlace.longitude
+                        ),
+                        radius: debugPlace.radius,
+                        triggerType: .arriving,
+                        lastTriggeredAt: nil
+                    )
+                ],
+                userLocation: nil
+            )
+
+            fakeMonitor.simulateTransition(triggerId, .enter)
+            notificationSimulationStatus = "Simulated geofence enter. A local notification should appear."
+        }
     }
 }
 

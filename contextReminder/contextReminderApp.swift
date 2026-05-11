@@ -124,6 +124,8 @@ struct contextReminderApp: App {
         MapScreenViewModel(
             store: placeStore,
             location: locationProvider,
+            searcher: addressSearcher,
+            geocoder: geocoder,
             poiDiscovery: poiDiscovery
         )
     }
