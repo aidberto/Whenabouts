@@ -1,12 +1,6 @@
-//
-//  ReminderTrigger.swift
-//  contextReminder
-//
-//  Created by Brian Jones Porianto on 2/5/2026.
-//
 
 import Foundation
-//fire the reminder based on the condition
+// fire the reminder based on the condition
 struct ReminderTrigger: Identifiable, Codable, Equatable {
     let id: UUID
     var triggerType: TriggerType

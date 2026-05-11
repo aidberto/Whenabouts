@@ -1,12 +1,6 @@
-//
-//  Place.swift
-//  contextReminder
-//
-//  Created by Brian Jones Porianto on 05/02/26
-//
 
 import Foundation
-//to identify the selected place 
+// to identify the selected place
 struct Place: Identifiable, Codable, Equatable {
     let id: UUID
     var name: String

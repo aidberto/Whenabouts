@@ -1,22 +1,14 @@
-//
-//  MapScreenViewModel.swift
-//  contextReminder
-//
-//  Powers the Map screen. Always shows the user's saved Places.
-//  Searches for nearby places and optionally filters by category
-//  (supermarket, pharmacy, post office).
-//
 
 import Foundation
 import Combine
 
 @MainActor
 final class MapScreenViewModel: ObservableObject {
-    /// Places returned by the most recent POI search.
+    // Places returned by the most recent POI search.
     @Published private(set) var pois: [Place] = []
     @Published private(set) var searchResults: [AddressSuggestion] = []
 
-    /// Which category to look for. nil means show every discoverable category.
+    // Which category to look for. nil means show every discoverable category.
     @Published var selectedPOICategory: PlaceType?
 
     private let store: any PlaceStore
@@ -27,18 +19,16 @@ final class MapScreenViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var searchTask: Task<Void, Never>?
 
-    /// Categories the picker offers. Personal categories (home, work, custom)
-    /// are excluded because Apple's catalogue doesn't know about them.
+    // Categories the picker offers. Personal categories (home, work, custom) are excluded because Apple's catalogue doesn't know about them.
     static let discoverableCategories: [PlaceType] = [.supermarket, .pharmacy, .postOffice]
 
-    /// Saved Places, read straight from the store.
+    // Saved Places, read straight from the store.
     var places: [Place] { store.places }
 
-    /// Latest known user coordinate (may be nil if no permission yet).
+    // Latest known user coordinate (may be nil if no permission yet).
     var currentCoordinate: LocationCoordinate? { location.currentCoordinate }
 
-    /// Current location permission state — used to decide whether the blue
-    /// user-location dot should appear on the map.
+    // Current location permission state — used to decide whether the blue user-location dot should appear on the map.
     var authorization: LocationAuthorization { location.authorization }
 
     init(
@@ -54,8 +44,7 @@ final class MapScreenViewModel: ObservableObject {
         self.geocoder = geocoder
         self.poiDiscovery = poiDiscovery
 
-        // Tell SwiftUI to redraw when either the saved Places or the user's
-        // location changes.
+        // Tell SwiftUI to redraw when either the saved Places or the user's location changes.
         store.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
@@ -64,8 +53,7 @@ final class MapScreenViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Run a POI search using the current filter and the user's current
-    /// location. With no filter selected, all discoverable categories are shown.
+    // Run a POI search using the current filter and the user's current location. With no filter selected, all discoverable categories are shown.
     func refreshPOIs() async {
         guard let coordinate = location.currentCoordinate else {
             pois = []
@@ -87,13 +75,13 @@ final class MapScreenViewModel: ObservableObject {
         pois = discoveredPOIs
     }
 
-    /// Pick a category and immediately refresh the POI list.
+    // Pick a category and immediately refresh the POI list.
     func selectCategory(_ category: PlaceType?) {
         selectedPOICategory = category
         Task { await refreshPOIs() }
     }
 
-    /// Async variant for views that need to react after the refreshed POIs exist.
+    // Async variant for views that need to react after the refreshed POIs exist.
     func selectCategoryAndRefresh(_ category: PlaceType?) async {
         selectedPOICategory = category
         await refreshPOIs()

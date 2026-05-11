@@ -1,18 +1,7 @@
-//
-//  StaticPOIDiscovery.swift
-//  contextReminder
-//
-//  Created by Brian Jones Porianto on 3/5/2026.
-//
-//  Test/preview fake. Returns hardcoded POIs by category — no network, no GPS.
-//  Used by tests, SwiftUI previews, and Person 3's trigger-engine work
-//  before the real Apple catalogue is wired up.
-//
 
 import Foundation
 
-/// In-memory `POIDiscovering`. Returns fixtures keyed by `PlaceType`.
-/// Default fixtures cover supermarket / pharmacy / postOffice (Sydney area).
+// In-memory `POIDiscovering`. Returns fixtures keyed by `PlaceType`. Default fixtures cover supermarket / pharmacy / postOffice (Sydney area).
 final class StaticPOIDiscovery: POIDiscovering {
     var fixtures: [PlaceType: [Place]]
 
@@ -20,8 +9,7 @@ final class StaticPOIDiscovery: POIDiscovering {
         self.fixtures = fixtures
     }
 
-    /// Returns up to `limit` fixtures for the requested category.
-    /// Ignores the `near` coordinate — fixtures are static.
+    // Returns up to `limit` fixtures for the requested category. Ignores the `near` coordinate — fixtures are static.
     func nearestPOIs(
         category: PlaceType,
         near: LocationCoordinate,
@@ -31,7 +19,7 @@ final class StaticPOIDiscovery: POIDiscovering {
         return Array(all.prefix(limit))
     }
 
-    /// Default fixtures — Sydney CBD area, mirroring real-world venues.
+    // Default fixtures — Sydney CBD area, mirroring real-world venues.
     static let defaults: [PlaceType: [Place]] = [
         .supermarket: [
             Place(name: "Coles Broadway", placeType: .supermarket, latitude: -33.8836, longitude: 151.1959),

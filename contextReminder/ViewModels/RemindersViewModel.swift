@@ -1,11 +1,3 @@
-//
-//  RemindersViewModel.swift
-//  contextReminder
-//
-//  Created by Aiden Bertovic on 5/5/2026.
-//
-//  Provides saved reminders and places to the reminders screen, and handles
-//  creating, editing, deleting, and marking reminders as complete.
 
 import Foundation
 import Combine
@@ -73,6 +65,17 @@ final class RemindersViewModel: ObservableObject {
         onRemindersChanged?()
     }
 
+    func toggleChecklistItem(reminder: Reminder, item: ChecklistItem) {
+        var updated = reminder
+        guard let index = updated.checklist.firstIndex(where: { $0.id == item.id }) else {
+            return
+        }
+
+        updated.checklist[index].isCompleted.toggle()
+        reminderStore.update(updated)
+        onRemindersChanged?()
+    }
+
     func save(_ reminder: Reminder) {
         if reminder.isCompleted {
             notificationManager.cancelNotification(identifier: timeNotificationIdentifier(for: reminder))
@@ -97,8 +100,8 @@ final class RemindersViewModel: ObservableObject {
         }
 
         notificationManager.scheduleReminderNotification(
-            title: reminder.title,
-            body: reminder.notes.isEmpty ? "You have a reminder." : reminder.notes,
+            title: reminder.notificationTitle,
+            body: reminder.notificationBody,
             identifier: identifier,
             at: scheduledAt
         )

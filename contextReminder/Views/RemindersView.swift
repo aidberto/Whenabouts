@@ -1,11 +1,3 @@
-//
-//  RemindersView.swift
-//  contextReminder
-//
-//  Created by Aiden Bertovic on 5/5/2026.
-//
-//  Shows the user's reminders and includes the form used to create or edit a
-//  reminder with a saved place, place type, priority, category, and checklist.
 
 import SwiftUI
 
@@ -15,6 +7,7 @@ struct RemindersView: View {
     @State private var reminderBeingEdited: Reminder?
     @State private var isShowingNewReminder = false
     @State private var completingReminderID: UUID?
+    @State private var expandedChecklistReminderIDs: Set<UUID> = []
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -30,7 +23,7 @@ struct RemindersView: View {
                     }
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 54)
+                .padding(.top, 30)
                 .padding(.bottom, 112)
             }
         }
@@ -78,7 +71,7 @@ struct RemindersView: View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(todayStamp)
-                    .font(.system(size: 12, weight: .medium, design: .serif))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
 
                 Text("My Whenabouts")
@@ -154,33 +147,30 @@ struct RemindersView: View {
 
             VStack(spacing: 14) {
                 ForEach(reminders) { reminder in
-                    reminderRow(reminder)
-                    .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .onTapGesture {
-                        guard completingReminderID != reminder.id else { return }
-                        reminderBeingEdited = reminder
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button {
-                            complete(reminder)
-                        } label: {
-                            Label("Done", systemImage: "checkmark")
+                    reminderRow(reminder, isChecklistExpanded: expandedChecklistReminderIDs.contains(reminder.id))
+                        .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .onTapGesture {
+                            toggleChecklistExpansion(for: reminder)
                         }
-                        .tint(.green)
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            delete(reminder)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                        .contextMenu {
+                            Button {
+                                reminderBeingEdited = reminder
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+
+                            Button(role: .destructive) {
+                                delete(reminder)
+                            } label: {
+                                Label("Remove", systemImage: "trash")
+                            }
                         }
-                    }
                 }
             }
         }
     }
 
-    private func reminderRow(_ reminder: Reminder) -> some View {
+    private func reminderRow(_ reminder: Reminder, isChecklistExpanded: Bool) -> some View {
         let isCompleting = completingReminderID == reminder.id
 
         return HStack(alignment: .top, spacing: 14) {
@@ -244,8 +234,18 @@ struct RemindersView: View {
                         Text("\(completedCount(for: reminder))/\(reminder.checklist.count)")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(cardTextColor(for: reminder).opacity(0.72))
+
+                        Image(systemName: isChecklistExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(cardTextColor(for: reminder).opacity(0.62))
                     }
                     .padding(.top, 2)
+
+                    if isChecklistExpanded {
+                        checklistItems(for: reminder)
+                            .padding(.top, 6)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
             }
 
@@ -288,6 +288,42 @@ struct RemindersView: View {
         .scaleEffect(isCompleting ? 0.96 : 1)
         .opacity(isCompleting ? 0.82 : 1)
         .animation(.spring(response: 0.30, dampingFraction: 0.72), value: isCompleting)
+        .animation(.spring(response: 0.28, dampingFraction: 0.82), value: isChecklistExpanded)
+    }
+
+    private func checklistItems(for reminder: Reminder) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(reminder.checklist) { item in
+                Button {
+                    viewModel.toggleChecklistItem(reminder: reminder, item: item)
+                } label: {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Circle()
+                                .fill(item.isCompleted ? cardTextColor(for: reminder) : .white.opacity(0.40))
+                            Circle()
+                                .stroke(cardTextColor(for: reminder).opacity(0.55), lineWidth: 1)
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundStyle(.white)
+                                .opacity(item.isCompleted ? 1 : 0)
+                        }
+                        .frame(width: 22, height: 22)
+
+                        Text(item.title)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(cardTextColor(for: reminder).opacity(item.isCompleted ? 0.52 : 0.82))
+                            .strikethrough(item.isCompleted, color: cardTextColor(for: reminder).opacity(0.62))
+                            .multilineTextAlignment(.leading)
+
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.vertical, 2)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
     private func targetLine(for reminder: Reminder) -> String {
@@ -368,9 +404,6 @@ struct RemindersView: View {
             barItem("list.bullet", "Reminders", tab: .reminders)
             barItem("square.stack.3d.up", "Places", tab: .places)
             barItem("map", "Map", tab: .map)
-            #if DEBUG
-            barItem("ladybug", "Debug", tab: .debug)
-            #endif
         }
         .padding(.horizontal, 18)
         .padding(.top, 8)
@@ -419,7 +452,22 @@ struct RemindersView: View {
         guard let index = viewModel.reminders.firstIndex(where: { $0.id == reminder.id }) else {
             return
         }
+        expandedChecklistReminderIDs.remove(reminder.id)
         viewModel.delete(at: IndexSet(integer: index))
+    }
+
+    private func toggleChecklistExpansion(for reminder: Reminder) {
+        guard !reminder.checklist.isEmpty, completingReminderID != reminder.id else {
+            return
+        }
+
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
+            if expandedChecklistReminderIDs.contains(reminder.id) {
+                expandedChecklistReminderIDs.remove(reminder.id)
+            } else {
+                expandedChecklistReminderIDs.insert(reminder.id)
+            }
+        }
     }
 
     private func complete(_ reminder: Reminder) {

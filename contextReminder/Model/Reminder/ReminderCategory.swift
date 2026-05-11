@@ -1,9 +1,3 @@
-//
-//  ReminderCategory.swift
-//  contextReminder
-//
-//  Created by Ameen A on 29/4/2026.
-//
 
 import Foundation
 
@@ -23,6 +17,16 @@ enum ReminderCategory: String, Codable, CaseIterable, Identifiable {
         case .health: return "Health"
         case .work: return "Work"
         case .general: return "General"
+        }
+    }
+
+    var emoji: String {
+        switch self {
+        case .grocery: return "🛒"
+        case .home: return "🏠"
+        case .health: return "💊"
+        case .work: return "🖨️"
+        case .general: return "✨"
         }
     }
 }

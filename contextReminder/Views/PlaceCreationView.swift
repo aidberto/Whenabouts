@@ -1,13 +1,3 @@
-//
-//  PlaceCreationView.swift
-//  contextReminder
-//
-//  The sheet shown when the user creates or edits a Place.
-//  Has three picker modes for choosing a coordinate:
-//    - Current  - snap to wherever the user is right now
-//    - Search   - type an address, pick from suggestions
-//    - Map      - drag a map until the centre pin is over the right spot
-//
 
 import SwiftUI
 import MapKit

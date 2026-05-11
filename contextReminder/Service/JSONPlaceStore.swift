@@ -1,21 +1,12 @@
-//
-//  JSONPlaceStore.swift
-//  contextReminder
-//
-//  Saves the user's Places as a JSON file inside the app's private
-//  Application Support folder. Loads the file on launch; writes it
-//  back whenever the user adds, updates, or deletes a Place.
-//
 
 import Foundation
 import Combine
 
 final class JSONPlaceStore: PlaceStore {
-    /// The current list of Places. SwiftUI views watch this for changes.
-    /// Outside callers can read it but only this class can change it.
+    // The current list of Places. SwiftUI views watch this for changes. Outside callers can read it but only this class can change it.
     @Published private(set) var places: [Place] = []
 
-    /// Path to the JSON file. Set once when the store is created.
+    // Path to the JSON file. Set once when the store is created.
     private let fileURL: URL
 
     init(fileURL: URL? = nil) {
@@ -43,9 +34,7 @@ final class JSONPlaceStore: PlaceStore {
         save()
     }
 
-    /// Read the JSON file from disk into the `places` array.
-    /// If the file doesn't exist yet (first launch) we just leave the list empty.
-    /// If the file is corrupted we log and leave the list empty.
+    // Read saved Places from disk; missing or corrupted files leave the list empty.
     private func load() {
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
             return
@@ -58,8 +47,7 @@ final class JSONPlaceStore: PlaceStore {
         }
     }
 
-    /// Write the current `places` array back to the JSON file.
-    /// Creates the folder first if it doesn't exist (happens on first launch).
+    // Write the current `places` array back to the JSON file. Creates the folder first if it doesn't exist (happens on first launch).
     private func save() {
         do {
             let data = try JSONEncoder().encode(places)
@@ -67,16 +55,14 @@ final class JSONPlaceStore: PlaceStore {
                 at: fileURL.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
-            // `.atomic` writes to a temp file first then renames it, so a crash
-            // mid-write can't leave us with a half-written corrupt file.
+            // `.atomic` writes to a temp file first then renames it, so a crash mid-write can't leave us with a half-written corrupt file.
             try data.write(to: fileURL, options: .atomic)
         } catch {
             print("PlaceStore save failed: \(error)")
         }
     }
 
-    /// Where the JSON file lives on the user's device.
-    /// `<App's private folder>/Library/Application Support/places.json`.
+    // Where the JSON file lives on the user's device. `<App's private folder>/Library/Application Support/places.json`.
     private static func defaultFileURL() -> URL {
         let appSupport = FileManager.default.urls(
             for: .applicationSupportDirectory,

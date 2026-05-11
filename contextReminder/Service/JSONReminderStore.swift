@@ -1,11 +1,3 @@
-//
-//  JSONReminderStore.swift
-//  contextReminder
-//
-//  Created by Aiden Bertovic on 5/5/2026.
-//
-//  Defines the reminder store interface and saves reminders to a JSON file in
-//  the apps Application Support folder.
 
 import Foundation
 import Combine
