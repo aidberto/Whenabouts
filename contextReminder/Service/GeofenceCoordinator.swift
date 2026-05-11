@@ -33,6 +33,7 @@ final class GeofenceCoordinator {
     /// Lookup table: region id → trigger info. Used when an event fires so
     /// we know which trigger it belongs to.
     private var activeTriggers: [UUID: MonitoredTrigger] = [:]
+    private var lastTriggeredAtByReminderTriggerId: [UUID: Date] = [:]
 
     init(
         monitor: any RegionMonitoring,
@@ -69,19 +70,19 @@ final class GeofenceCoordinator {
         for id in toStop {
             monitor.stopMonitoring(id: id)
         }
-        for trigger in selected where toStart.contains(trigger.id) {
-            print("starting monitoring for trigger: \(trigger.id)")
+        for trigger in selected where toStart.contains(trigger.regionId) {
+            print("starting monitoring for trigger: \(trigger.regionId)")
             print("Radius: \(trigger.radius)")
             print("Coordinate: \(trigger.coordinate.latitude), \(trigger.coordinate.longitude)")
             monitor.startMonitoring(
-                id: trigger.id,
+                id: trigger.regionId,
                 coordinate: trigger.coordinate,
                 radius: trigger.radius
             )
         }
 
         // Update our lookup table.
-        activeTriggers = Dictionary(uniqueKeysWithValues: selected.map { ($0.id, $0) })
+        activeTriggers = Dictionary(uniqueKeysWithValues: selected.map { ($0.regionId, $0) })
 
         // Step 3: cold-start check. If the user is already inside a new arriving
         // circle, fire the event right now (iOS won't — it only fires on crosses).
@@ -98,12 +99,12 @@ final class GeofenceCoordinator {
         print("Current Latitude: ", userLocation.latitude)
         print("Current Longitude", userLocation.longitude)
         
-        for trigger in selected where toStart.contains(trigger.id) {
+        for trigger in selected {
             guard trigger.triggerType == .arriving else { continue }
             if isInside(userLocation, trigger: trigger), !isDebounced(trigger) {
                 print("User is inside trigger region")
                 print("Emitting cold-start Arrival")
-                emit(triggerId: trigger.id, kind: .arriving)
+                emit(triggerId: trigger.reminderTriggerId, kind: .arriving)
             }
         }
     }
@@ -146,10 +147,11 @@ final class GeofenceCoordinator {
         // Don't fire the same trigger twice within 60 seconds.
         guard !isDebounced(trigger) else { return }
 
-        emit(triggerId: id, kind: kind)
+        emit(triggerId: trigger.reminderTriggerId, kind: kind)
     }
 
     private func emit(triggerId: UUID, kind: TriggerType) {
+        lastTriggeredAtByReminderTriggerId[triggerId] = Date()
         let event = GeofenceEvent(triggerId: triggerId, kind: kind, timestamp: Date())
         print("Geofence fired: \(kind)")
         onEvent?(event)
@@ -157,7 +159,8 @@ final class GeofenceCoordinator {
 
     /// Has this trigger already fired in the last `debounceWindow` seconds?
     private func isDebounced(_ trigger: MonitoredTrigger) -> Bool {
-        guard let last = trigger.lastTriggeredAt else { return false }
+        let last = lastTriggeredAtByReminderTriggerId[trigger.reminderTriggerId] ?? trigger.lastTriggeredAt
+        guard let last else { return false }
         return Date().timeIntervalSince(last) < debounceWindow
     }
 

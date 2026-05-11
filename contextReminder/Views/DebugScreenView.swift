@@ -35,8 +35,15 @@ struct DebugScreenView: View {
             Button {
                 simulateGeofenceNotification()
             } label: {
-                Label("Simulate geofence enter", systemImage: "location.circle")
+                Label("Simulate temporary reminder", systemImage: "location.circle")
             }
+
+            Button {
+                simulateFirstMonitoredRegionEnter()
+            } label: {
+                Label("Simulate first monitored region", systemImage: "bell.badge")
+            }
+            .disabled(locationProvider.monitoredRegionIds.isEmpty)
 
             Text(notificationSimulationStatus)
                 .font(.caption)
@@ -205,6 +212,23 @@ struct DebugScreenView: View {
 
             fakeMonitor.simulateTransition(triggerId, .enter)
             notificationSimulationStatus = "Simulated geofence enter. A local notification should appear."
+        }
+    }
+
+    private func simulateFirstMonitoredRegionEnter() {
+        guard let regionId = locationProvider.monitoredRegionIds.first else {
+            notificationSimulationStatus = "No monitored regions available."
+            return
+        }
+
+        notificationSimulationStatus = "Simulating monitored region enter..."
+
+        Task {
+            let notificationManager = LocalNotificationManager.shared
+            _ = await notificationManager.requestPermission()
+
+            locationProvider.onRegionTransition?(regionId, .enter)
+            notificationSimulationStatus = "Sent enter event for \(regionId.uuidString)."
         }
     }
 }
