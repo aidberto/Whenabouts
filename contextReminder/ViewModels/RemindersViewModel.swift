@@ -100,8 +100,8 @@ final class RemindersViewModel: ObservableObject {
         }
 
         notificationManager.scheduleReminderNotification(
-            title: reminder.title,
-            body: reminder.notes.isEmpty ? "You have a reminder." : reminder.notes,
+            title: reminder.notificationTitle,
+            body: reminder.notificationBody,
             identifier: identifier,
             at: scheduledAt
         )

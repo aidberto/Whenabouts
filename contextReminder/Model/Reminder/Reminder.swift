@@ -37,3 +37,13 @@ struct Reminder: Identifiable, Codable, Equatable {
         self.createdAt = createdAt
     }
 }
+
+extension Reminder {
+    var notificationTitle: String {
+        "Whenabouts \(category.emoji)"
+    }
+
+    var notificationBody: String {
+        title
+    }
+}

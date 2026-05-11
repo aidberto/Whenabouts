@@ -19,4 +19,14 @@ enum ReminderCategory: String, Codable, CaseIterable, Identifiable {
         case .general: return "General"
         }
     }
+
+    var emoji: String {
+        switch self {
+        case .grocery: return "🛒"
+        case .home: return "🏠"
+        case .health: return "💊"
+        case .work: return "🖨️"
+        case .general: return "✨"
+        }
+    }
 }
