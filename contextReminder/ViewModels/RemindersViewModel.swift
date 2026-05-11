@@ -65,6 +65,17 @@ final class RemindersViewModel: ObservableObject {
         onRemindersChanged?()
     }
 
+    func toggleChecklistItem(reminder: Reminder, item: ChecklistItem) {
+        var updated = reminder
+        guard let index = updated.checklist.firstIndex(where: { $0.id == item.id }) else {
+            return
+        }
+
+        updated.checklist[index].isCompleted.toggle()
+        reminderStore.update(updated)
+        onRemindersChanged?()
+    }
+
     func save(_ reminder: Reminder) {
         if reminder.isCompleted {
             notificationManager.cancelNotification(identifier: timeNotificationIdentifier(for: reminder))

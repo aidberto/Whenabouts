@@ -277,10 +277,6 @@ struct PlacesLibraryView: View {
     }
 }
 
-// Lets us drive the create/edit sheet using `.sheet(item:)`. Each PlaceCreationViewModel is uniquely identified by its memory address.
-extension PlaceCreationViewModel: Identifiable {
-    public var id: ObjectIdentifier { ObjectIdentifier(self) }
-}
 
 struct PlacesLibraryView_Previews: PreviewProvider {
     static var previews: some View {

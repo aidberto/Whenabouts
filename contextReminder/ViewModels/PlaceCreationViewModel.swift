@@ -3,7 +3,8 @@ import Foundation
 import Combine
 
 @MainActor
-final class PlaceCreationViewModel: ObservableObject {
+final class PlaceCreationViewModel: ObservableObject, Identifiable {
+    nonisolated var id: ObjectIdentifier { ObjectIdentifier(self) }
 
     // The three ways the user can pick a coordinate.
     enum PickerMode: String, CaseIterable, Identifiable {
