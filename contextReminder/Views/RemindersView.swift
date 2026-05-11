@@ -23,7 +23,7 @@ struct RemindersView: View {
                     }
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 54)
+                .padding(.top, 30)
                 .padding(.bottom, 112)
             }
         }

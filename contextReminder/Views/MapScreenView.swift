@@ -63,7 +63,7 @@ struct MapScreenView: View {
                 .ignoresSafeArea()
 
             mapSearchAndFilters
-                .padding(.top, 58)
+                .padding(.top, 30)
                 .padding(.horizontal, 14)
         }
     }

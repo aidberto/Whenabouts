@@ -23,7 +23,7 @@ struct PlacesLibraryView: View {
                     }
                 }
                 .padding(.horizontal, 18)
-                .padding(.top, 54)
+                .padding(.top, 30)
                 .padding(.bottom, 112)
             }
         }
@@ -52,7 +52,7 @@ struct PlacesLibraryView: View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(todayStamp)
-                    .font(.system(size: 12, weight: .medium)
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
 
                 Text("My Places")
