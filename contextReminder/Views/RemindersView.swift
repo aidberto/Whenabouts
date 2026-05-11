@@ -71,7 +71,7 @@ struct RemindersView: View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(todayStamp)
-                    .font(.system(size: 12, weight: .medium, design: .serif))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
 
                 Text("My Whenabouts")
