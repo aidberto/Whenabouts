@@ -1,10 +1,3 @@
-//
-//  PlacesLibraryViewModel.swift
-//  contextReminder
-//
-//  Powers the Places list screen. Reads Places from the store and creates
-//  the view model for the create/edit sheet when the user taps + or a row.
-//
 
 import Foundation
 import Combine
@@ -17,7 +10,7 @@ final class PlacesLibraryViewModel: ObservableObject {
     private let geocoder: any Geocoding
     private var cancellable: AnyCancellable?
 
-    /// All saved Places, read straight from the store.
+    // All saved Places, read straight from the store.
     var places: [Place] { store.places }
 
     init(
@@ -36,15 +29,14 @@ final class PlacesLibraryViewModel: ObservableObject {
         }
     }
 
-    /// Called by SwiftUI's swipe-to-delete. `offsets` is the row indexes to remove.
+    // Called by SwiftUI's swipe-to-delete. `offsets` is the row indexes to remove.
     func delete(at offsets: IndexSet) {
         for index in offsets {
             store.delete(id: places[index].id)
         }
     }
 
-    /// Build a view model for the create/edit sheet.
-    /// Pass an existing Place to edit it; pass nil to create a new one.
+    // Build a view model for the create/edit sheet. Pass an existing Place to edit it; pass nil to create a new one.
     func makeCreationViewModel(editing: Place? = nil) -> PlaceCreationViewModel {
         PlaceCreationViewModel(
             store: store,

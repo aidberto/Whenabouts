@@ -1,11 +1,3 @@
-//
-//  PlaceCreationViewModel.swift
-//  contextReminder
-//
-//  Powers the create/edit Place sheet. Handles the three picker modes:
-//  current location, address search, and map pin drop. Same view model
-//  used for both creating new Places and editing existing ones.
-//
 
 import Foundation
 import Combine
@@ -13,7 +5,7 @@ import Combine
 @MainActor
 final class PlaceCreationViewModel: ObservableObject {
 
-    /// The three ways the user can pick a coordinate.
+    // The three ways the user can pick a coordinate.
     enum PickerMode: String, CaseIterable, Identifiable {
         case currentLocation
         case search
@@ -47,7 +39,7 @@ final class PlaceCreationViewModel: ObservableObject {
     private let searcher: any AddressSearching
     private let geocoder: any Geocoding
 
-    /// If we're editing an existing Place, its id. Nil if creating a new one.
+    // If we're editing an existing Place, its id. Nil if creating a new one.
     private let editingId: UUID?
 
     private var locationCancellable: AnyCancellable?
@@ -91,8 +83,7 @@ final class PlaceCreationViewModel: ObservableObject {
             self.coordinate = location.currentCoordinate
         }
 
-        // Re-render when the user's location updates (so the "Current" mode
-        // reflects new coordinates as the GPS gets a better fix).
+        // Re-render when the user's location updates (so the "Current" mode reflects new coordinates as the GPS gets a better fix).
         locationCancellable = location.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async {
                 self?.objectWillChange.send()
@@ -100,10 +91,10 @@ final class PlaceCreationViewModel: ObservableObject {
         }
     }
 
-    /// True when the user is editing an existing Place (vs creating a new one).
+    // True when the user is editing an existing Place (vs creating a new one).
     var isEditing: Bool { editingId != nil }
 
-    /// True when the form has enough info to save.
+    // True when the form has enough info to save.
     var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && coordinate != nil
     }
@@ -116,8 +107,7 @@ final class PlaceCreationViewModel: ObservableObject {
         location.authorization
     }
 
-    /// Set the coordinate to wherever the user is right now.
-    /// Triggers the permission prompt if needed; shows an error if denied.
+    // Set the coordinate to wherever the user is right now. Triggers the permission prompt if needed; shows an error if denied.
     func useCurrentLocation() {
         if location.authorization == .notDetermined {
             location.requestWhenInUseAuthorization()
@@ -134,8 +124,7 @@ final class PlaceCreationViewModel: ObservableObject {
         location.openSettings()
     }
 
-    /// User tapped a search result — fill in the coordinate and (if name is empty)
-    /// the suggested name.
+    // User tapped a search result — fill in the coordinate and (if name is empty) the suggested name.
     func selectSuggestion(_ suggestion: AddressSuggestion) {
         coordinate = suggestion.coordinate
         if name.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -143,8 +132,7 @@ final class PlaceCreationViewModel: ObservableObject {
         }
     }
 
-    /// Run an address search for the current query. Cancels any earlier
-    /// in-flight search so only the latest result wins.
+    // Run an address search for the current query. Cancels any earlier in-flight search so only the latest result wins.
     func performSearch() {
         searchTask?.cancel()
         let query = searchQuery
@@ -156,8 +144,7 @@ final class PlaceCreationViewModel: ObservableObject {
         }
     }
 
-    /// User panned the map — update the pinned coordinate and look up the
-    /// address for it (so we can show "42 Smith St" under the pin).
+    // User panned the map — update the pinned coordinate and look up the address for it (so we can show "42 Smith St" under the pin).
     func updatePinnedCoordinate(_ value: LocationCoordinate) {
         coordinate = value
         geocodeTask?.cancel()
@@ -169,9 +156,7 @@ final class PlaceCreationViewModel: ObservableObject {
         }
     }
 
-    /// Save the Place. Creates a new one or updates the existing one
-    /// (depending on whether `editingId` is set). Returns true on success
-    /// so the view can dismiss the sheet.
+    // Save a new or edited Place and return whether the sheet can close.
     func save() -> Bool {
         guard let coordinate, canSave else { return false }
         let trimmed = name.trimmingCharacters(in: .whitespaces)

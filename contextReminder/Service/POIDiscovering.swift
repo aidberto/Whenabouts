@@ -1,22 +1,9 @@
-//
-//  POIDiscovering.swift
-//  contextReminder
-//
-//  Describes "the thing that finds nearby places of a category."
-//  Used to expand a "any supermarket" reminder into specific supermarket
-//  locations the user might pass.
-//
-//  The real app uses MKLocalPOIDiscovery, which calls Apple's catalogue.
-//  Tests and previews use StaticPOIDiscovery with hardcoded fixtures.
-//
 
 import Foundation
 import MapKit
 
 protocol POIDiscovering {
-    // Find nearby places of `category` within 5km of 'near'
-    // Returns up to `limit` results. Returns empty for personal categories
-    // (home/work/custom) — those n eed a saved place
+    // Find nearby category places within 5km, excluding personal saved-place types.
     func nearestPOIs(
         category: PlaceType,
         near: LocationCoordinate,
@@ -24,12 +11,10 @@ protocol POIDiscovering {
     ) async -> [Place]
 }
 
-/// Real-app version. Uses Apple's MKLocalPointsOfInterestRequest.
+// Real-app version. Uses Apple's MKLocalPointsOfInterestRequest.
 final class MKLocalPOIDiscovery: POIDiscovering {
 
-    /// Convert our PlaceType to Apple's category.
-    /// Returns nil for personal categories (home, work, custom) — Apple has
-    /// no way to know about those, they have to be saved by the user manually.
+    // Convert app place types to Apple POI categories where possible.
     private func appleCategory(for type: PlaceType) -> MKPointOfInterestCategory? {
         switch type {
         case .supermarket: return .foodMarket

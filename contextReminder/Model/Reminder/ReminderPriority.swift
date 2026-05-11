@@ -1,9 +1,3 @@
-//
-//  ReminderPriority.swift
-//  contextReminder
-//
-//  Created by Ameen A on 29/4/2026.
-//
 
 import Foundation
 

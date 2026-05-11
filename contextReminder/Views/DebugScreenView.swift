@@ -1,12 +1,3 @@
-//
-//  DebugScreenView.swift
-//  contextReminder
-//
-//  Developer-only screen for inspecting what the location stack is doing:
-//  permission state, current coordinate, monitored geofence circles, saved Places.
-//
-//  Only compiled in debug builds — `#if DEBUG` makes it disappear in release.
-//
 
 #if DEBUG
 import SwiftUI
@@ -107,10 +98,7 @@ struct DebugScreenView: View {
 
     // MARK: - Helpers
 
-    /// One row in the "Monitored Regions" list.
-    /// Tries to match the region id back to a saved Place to show a friendly
-    /// name. POI-discovered regions don't match anything saved, so we just
-    /// show the raw id.
+    // Show a monitored region with a friendly saved-place name when possible.
     private func monitoredRegionRow(_ id: UUID) -> some View {
         if let place = placeStore.places.first(where: { $0.id == id }) {
             return AnyView(

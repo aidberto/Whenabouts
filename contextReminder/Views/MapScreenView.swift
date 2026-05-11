@@ -1,12 +1,3 @@
-//
-//  MapScreenView.swift
-//  contextReminder
-//
-//  Map screen. Shows the user's saved Places as coloured pins.
-//  Optional category picker (top-right) shows nearby POIs of one type
-//  (supermarket, pharmacy, post office). Blue user-location dot appears
-//  when permission is granted.
-//
 
 import SwiftUI
 import MapKit
@@ -15,8 +6,7 @@ struct MapScreenView: View {
     @StateObject var viewModel: MapScreenViewModel
     @Binding var selectedTab: AppTab
 
-    /// Where the map is currently looking. We move it to the user's location
-    /// once we have one, otherwise it auto-fits to the pins.
+    // Where the map is currently looking. We move it to the user's location once we have one, otherwise it auto-fits to the pins.
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var searchQuery = ""
     @State private var selectedSearchResult: AddressSuggestion?
@@ -78,7 +68,7 @@ struct MapScreenView: View {
         }
     }
 
-    /// The Map itself. Three layers: saved Places, discovered POIs, user dot.
+    // The Map itself. Three layers: saved Places, discovered POIs, user dot.
     private var mapContent: some View {
         Map(position: $cameraPosition) {
             ForEach(visibleSavedPlaces) { place in
@@ -247,9 +237,6 @@ struct MapScreenView: View {
             barItem("list.bullet", "Reminders", tab: .reminders)
             barItem("square.stack.3d.up", "Places", tab: .places)
             barItem("map", "Map", tab: .map)
-            #if DEBUG
-            barItem("ladybug", "Debug", tab: .debug)
-            #endif
         }
         .padding(.horizontal, 18)
         .padding(.top, 8)
@@ -281,8 +268,7 @@ struct MapScreenView: View {
 
     // MARK: - Helpers
 
-    /// True when the user has granted location permission, so we can show
-    /// the blue user-location dot.
+    // True when the user has granted location permission, so we can show the blue user-location dot.
     private var locationAvailable: Bool {
         viewModel.authorization == .full || viewModel.authorization == .foregroundOnly
     }
@@ -298,8 +284,7 @@ struct MapScreenView: View {
         visibleSavedPlaces + viewModel.pois
     }
 
-    /// Move the map to centre on the user's current location.
-    /// Does nothing if we don't have a location yet.
+    // Move the map to centre on the user's current location. Does nothing if we don't have a location yet.
     private func centreOnUserIfPossible() {
         guard let coord = viewModel.currentCoordinate else { return }
         cameraPosition = .region(
@@ -360,8 +345,7 @@ struct MapScreenView: View {
         }
     }
 
-    /// A coloured circle with an icon inside it. We use this for every map pin.
-    /// `dimmed` makes POI pins look different from saved Place pins.
+    // A coloured circle with an icon inside it. We use this for every map pin. `dimmed` makes POI pins look different from saved Place pins.
     @ViewBuilder
     private func pinView(for type: PlaceType, dimmed: Bool) -> some View {
         Image(systemName: icon(for: type))
@@ -445,8 +429,7 @@ struct MapScreenView: View {
 
 // MARK: - Place → coordinate
 
-/// Apple's Map view wants its coordinates in a specific Apple type.
-/// Place stores them as plain numbers; this little helper converts.
+// Apple's Map view wants its coordinates in a specific Apple type. Place stores them as plain numbers; this little helper converts.
 private extension Place {
     var coordinate2D: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)

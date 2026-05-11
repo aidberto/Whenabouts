@@ -1,13 +1,6 @@
-//
-//  LocationAuthorization.swift
-//  contextReminder
-//
-//  Created by Brian Jones Porianto on 05/02/2026
-//
 
 import Foundation
-// for authorization for foreground running (if user close the app, it still run).
-// User can choose between full foreground running or no.
+// for authorization for foreground running (if user close the app, it still run). User can choose between full foreground running or no.
 enum LocationAuthorization: Equatable {
     case notDetermined
     case foregroundOnly
@@ -15,7 +8,7 @@ enum LocationAuthorization: Equatable {
     case denied
     case restricted
     
-    //default value for foreground running
+    // default value for foreground running
     var canMonitorInBackground: Bool {
         self == .full
     }

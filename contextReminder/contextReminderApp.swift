@@ -1,7 +1,3 @@
-//
-//  contextReminderApp.swift
-//  contextReminder
-//
 
 import SwiftUI
 
@@ -9,7 +5,6 @@ enum AppTab: Hashable {
     case reminders
     case places
     case map
-    case debug
 }
 
 @main
@@ -22,8 +17,7 @@ struct contextReminderApp: App {
     @StateObject private var locationProvider = CoreLocationProvider()
     @State private var selectedTab: AppTab = .reminders
 
-    // Helpers for the Place creation sheet (address search, reverse geocoding,
-    // POI lookup). Plain `let` because they have no state of their own.
+    // Helpers for the Place creation sheet (address search, reverse geocoding, POI lookup). Plain `let` because they have no state of their own.
     private let addressSearcher: any AddressSearching = MKLocalAddressSearcher()
     private let geocoder: any Geocoding = CLGeocoder_Geocoder()
     private let poiDiscovery: any POIDiscovering = MKLocalPOIDiscovery()
@@ -49,20 +43,9 @@ struct contextReminderApp: App {
                 MapScreenView(viewModel: mapScreenViewModel, selectedTab: $selectedTab)
                     .tabItem { Label("Map", systemImage: "map") }
                     .tag(AppTab.map)
-
-                #if DEBUG
-                // Debug tab only appears in development builds, never in release.
-                DebugScreenView(
-                    locationProvider: locationProvider,
-                    placeStore: placeStore
-                )
-                .tabItem { Label("Debug", systemImage: "ladybug") }
-                .tag(AppTab.debug)
-                #endif
             }
             .onAppear {
-                // Ask for location permission on first launch so the app is
-                // ready to use straight away.
+                // Ask for location permission on first launch so reminders are ready.
                 
                 guard !hasInitializedServices else {
                 return

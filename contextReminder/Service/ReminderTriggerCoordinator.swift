@@ -1,9 +1,3 @@
-//
-//  ReminderTriggerCoordinator.swift
-//  contextReminder
-//
-//  Created by Ameen A on 8/5/2026.
-//
 
 import Foundation
 

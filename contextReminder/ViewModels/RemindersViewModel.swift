@@ -1,11 +1,3 @@
-//
-//  RemindersViewModel.swift
-//  contextReminder
-//
-//  Created by Aiden Bertovic on 5/5/2026.
-//
-//  Provides saved reminders and places to the reminders screen, and handles
-//  creating, editing, deleting, and marking reminders as complete.
 
 import Foundation
 import Combine

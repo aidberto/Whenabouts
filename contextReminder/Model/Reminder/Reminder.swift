@@ -1,11 +1,3 @@
-//
-//  Reminder.swift
-//  contextReminder
-//
-//  Created by Aiden Bertovic on 5/5/2026.
-//
-//  Stores the data for one context reminder, including its location trigger,
-//  priority, category, checklist items, and completion state.
 
 import Foundation
 

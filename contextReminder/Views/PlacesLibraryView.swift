@@ -1,10 +1,3 @@
-//
-//  PlacesLibraryView.swift
-//  contextReminder
-//
-//  Lists all the user's saved Places. Tap + to add a new one,
-//  tap a row to edit, or swipe to delete.
-//
 
 import SwiftUI
 
@@ -12,8 +5,7 @@ struct PlacesLibraryView: View {
     @StateObject var viewModel: PlacesLibraryViewModel
     @Binding var selectedTab: AppTab
 
-    /// When non-nil, the create/edit sheet is shown. Setting this back to nil
-    /// dismisses the sheet.
+    // When non-nil, the create/edit sheet is shown. Setting this back to nil dismisses the sheet.
     @State private var creationViewModel: PlaceCreationViewModel?
 
     var body: some View {
@@ -184,9 +176,6 @@ struct PlacesLibraryView: View {
             barItem("list.bullet", "Reminders", tab: .reminders)
             barItem("square.stack.3d.up", "Places", tab: .places)
             barItem("map", "Map", tab: .map)
-            #if DEBUG
-            barItem("ladybug", "Debug", tab: .debug)
-            #endif
         }
         .padding(.horizontal, 18)
         .padding(.top, 8)
@@ -288,8 +277,7 @@ struct PlacesLibraryView: View {
     }
 }
 
-/// Lets us drive the create/edit sheet using `.sheet(item:)`.
-/// Each PlaceCreationViewModel is uniquely identified by its memory address.
+// Lets us drive the create/edit sheet using `.sheet(item:)`. Each PlaceCreationViewModel is uniquely identified by its memory address.
 extension PlaceCreationViewModel: Identifiable {
     public var id: ObjectIdentifier { ObjectIdentifier(self) }
 }

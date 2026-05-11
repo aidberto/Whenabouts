@@ -1,11 +1,3 @@
-//
-//  RemindersView.swift
-//  contextReminder
-//
-//  Created by Aiden Bertovic on 5/5/2026.
-//
-//  Shows the user's reminders and includes the form used to create or edit a
-//  reminder with a saved place, place type, priority, category, and checklist.
 
 import SwiftUI
 
@@ -368,9 +360,6 @@ struct RemindersView: View {
             barItem("list.bullet", "Reminders", tab: .reminders)
             barItem("square.stack.3d.up", "Places", tab: .places)
             barItem("map", "Map", tab: .map)
-            #if DEBUG
-            barItem("ladybug", "Debug", tab: .debug)
-            #endif
         }
         .padding(.horizontal, 18)
         .padding(.top, 8)

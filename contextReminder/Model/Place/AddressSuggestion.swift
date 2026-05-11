@@ -1,9 +1,3 @@
-//
-//  AddressSuggestion.swift
-//  contextReminder
-//
-//  Created by Brian Jones Porianto on 3/5/2026.
-//
 
 import Foundation
 
