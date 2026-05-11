@@ -132,7 +132,8 @@ struct contextReminderApp: App {
         
         let vm = RemindersViewModel(
             reminderStore:reminderStore,
-            placeStore: placeStore
+            placeStore: placeStore,
+            notificationManager: notificationManager
         )
         
         vm.onRemindersChanged = {

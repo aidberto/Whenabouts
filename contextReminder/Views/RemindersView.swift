@@ -222,6 +222,12 @@ struct RemindersView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(cardTextColor(for: reminder).opacity(0.72))
 
+                if let scheduledAt = reminder.scheduledAt {
+                    Text(timeLine(for: scheduledAt))
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(cardTextColor(for: reminder).opacity(0.72))
+                }
+
                 if !reminder.checklist.isEmpty {
                     HStack(spacing: 10) {
                         GeometryReader { proxy in
@@ -300,6 +306,10 @@ struct RemindersView: View {
         case .leaving:
             return "when leaving"
         }
+    }
+
+    private func timeLine(for date: Date) -> String {
+        "at \(date.formatted(date: .abbreviated, time: .shortened))"
     }
 
     private func completedCount(for reminder: Reminder) -> Int {
@@ -457,6 +467,8 @@ struct ReminderFormView: View {
     @State private var targetChoice: TargetChoice
     @State private var selectedPlaceId: UUID?
     @State private var selectedPlaceType: PlaceType
+    @State private var hasTimeTrigger: Bool
+    @State private var scheduledAt: Date
     @State private var checklist: [ChecklistItem]
     @State private var newChecklistItem = ""
 
@@ -474,6 +486,8 @@ struct ReminderFormView: View {
         _category = State(initialValue: reminder?.category ?? .general)
         _priority = State(initialValue: reminder?.priority ?? .normal)
         _triggerType = State(initialValue: reminder?.trigger.triggerType ?? .arriving)
+        _hasTimeTrigger = State(initialValue: reminder?.scheduledAt != nil)
+        _scheduledAt = State(initialValue: reminder?.scheduledAt ?? Date().addingTimeInterval(3600))
         _checklist = State(initialValue: reminder?.checklist ?? [])
 
         if let reminder {
@@ -509,6 +523,7 @@ struct ReminderFormView: View {
 
                         detailsSection
                         triggerSection
+                        timeSection
                         categorySection
                         prioritySection
                         notesSection
@@ -641,6 +656,55 @@ struct ReminderFormView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var timeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            formSectionTitle("REMIND ME AT")
+
+            VStack(spacing: 12) {
+                HStack(spacing: 10) {
+                    optionButton(
+                        icon: "clock",
+                        title: "Any time",
+                        isSelected: !hasTimeTrigger
+                    ) {
+                        hasTimeTrigger = false
+                    }
+
+                    optionButton(
+                        icon: "calendar.badge.clock",
+                        title: "Pick time",
+                        isSelected: hasTimeTrigger
+                    ) {
+                        hasTimeTrigger = true
+                        if scheduledAt < Date() {
+                            scheduledAt = Date().addingTimeInterval(3600)
+                        }
+                    }
+                }
+
+                if hasTimeTrigger {
+                    DatePicker(
+                        "Date and time",
+                        selection: $scheduledAt,
+                        in: Date()...,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color(red: 0.18, green: 0.15, blue: 0.12))
+                    .padding(14)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Color(red: 0.22, green: 0.19, blue: 0.15).opacity(0.10), lineWidth: 1)
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .animation(.spring(response: 0.28, dampingFraction: 0.82), value: hasTimeTrigger)
         }
     }
 
@@ -951,6 +1015,7 @@ struct ReminderFormView: View {
                 triggerType: triggerType,
                 target: target
             ),
+            scheduledAt: hasTimeTrigger ? scheduledAt : nil,
             checklist: checklist,
             isCompleted: reminder?.isCompleted ?? false,
             createdAt: reminder?.createdAt ?? Date()

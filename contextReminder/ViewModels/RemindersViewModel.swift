@@ -14,6 +14,7 @@ import Combine
 final class RemindersViewModel: ObservableObject {
     private let reminderStore: any ReminderStore
     private let placeStore: any PlaceStore
+    private let notificationManager: any NotificationManaging
     private var cancellables = Set<AnyCancellable>()
     
     var onRemindersChanged: (() -> Void)?
@@ -31,9 +32,14 @@ final class RemindersViewModel: ObservableObject {
         placeStore.places
     }
 
-    init(reminderStore: any ReminderStore, placeStore: any PlaceStore) {
+    init(
+        reminderStore: any ReminderStore,
+        placeStore: any PlaceStore,
+        notificationManager: any NotificationManaging
+    ) {
         self.reminderStore = reminderStore
         self.placeStore = placeStore
+        self.notificationManager = notificationManager
 
         reminderStore.objectWillChange
             .sink { [weak self] _ in self?.objectWillChange.send() }
@@ -47,7 +53,9 @@ final class RemindersViewModel: ObservableObject {
     func delete(at offsets: IndexSet) {
         let currentReminders = reminders
         for index in offsets {
-            reminderStore.delete(id: currentReminders[index].id)
+            let reminder = currentReminders[index]
+            notificationManager.cancelNotification(identifier: timeNotificationIdentifier(for: reminder))
+            reminderStore.delete(id: reminder.id)
         }
         
         onRemindersChanged?()
@@ -56,11 +64,22 @@ final class RemindersViewModel: ObservableObject {
     func toggleCompleted(_ reminder: Reminder) {
         var updated = reminder
         updated.isCompleted.toggle()
+        if updated.isCompleted {
+            notificationManager.cancelNotification(identifier: timeNotificationIdentifier(for: updated))
+        } else {
+            scheduleTimeNotificationIfNeeded(for: updated)
+        }
         reminderStore.update(updated)
         onRemindersChanged?()
     }
 
     func save(_ reminder: Reminder) {
+        if reminder.isCompleted {
+            notificationManager.cancelNotification(identifier: timeNotificationIdentifier(for: reminder))
+        } else {
+            scheduleTimeNotificationIfNeeded(for: reminder)
+        }
+
         if reminderStore.reminders.contains(where: { $0.id == reminder.id }) {
             reminderStore.update(reminder)
         } else {
@@ -68,5 +87,24 @@ final class RemindersViewModel: ObservableObject {
         }
         
         onRemindersChanged?()
+    }
+
+    private func scheduleTimeNotificationIfNeeded(for reminder: Reminder) {
+        let identifier = timeNotificationIdentifier(for: reminder)
+        guard let scheduledAt = reminder.scheduledAt else {
+            notificationManager.cancelNotification(identifier: identifier)
+            return
+        }
+
+        notificationManager.scheduleReminderNotification(
+            title: reminder.title,
+            body: reminder.notes.isEmpty ? "You have a reminder." : reminder.notes,
+            identifier: identifier,
+            at: scheduledAt
+        )
+    }
+
+    private func timeNotificationIdentifier(for reminder: Reminder) -> String {
+        "\(reminder.id.uuidString)-time"
     }
 }

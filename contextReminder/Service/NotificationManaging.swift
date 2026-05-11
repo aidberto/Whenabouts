@@ -15,4 +15,11 @@ protocol NotificationManaging {
         body: String,
         identifier: String
     )
+    func scheduleReminderNotification(
+        title: String,
+        body: String,
+        identifier: String,
+        at date: Date
+    )
+    func cancelNotification(identifier: String)
 }
