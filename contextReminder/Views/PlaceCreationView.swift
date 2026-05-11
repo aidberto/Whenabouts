@@ -223,6 +223,14 @@ struct PlaceCreationView: View {
 
             ZStack {
                 Map(position: $mapCameraPosition)
+                    .mapStyle(
+                        .standard(
+                            elevation: .flat,
+                            emphasis: .muted,
+                            pointsOfInterest: .excludingAll,
+                            showsTraffic: false
+                        )
+                    )
                     .frame(height: 260)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .onMapCameraChange { context in

@@ -124,6 +124,8 @@ struct contextReminderApp: App {
         MapScreenViewModel(
             store: placeStore,
             location: locationProvider,
+            searcher: addressSearcher,
+            geocoder: geocoder,
             poiDiscovery: poiDiscovery
         )
     }
@@ -132,7 +134,8 @@ struct contextReminderApp: App {
         
         let vm = RemindersViewModel(
             reminderStore:reminderStore,
-            placeStore: placeStore
+            placeStore: placeStore,
+            notificationManager: notificationManager
         )
         
         vm.onRemindersChanged = {

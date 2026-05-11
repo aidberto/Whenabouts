@@ -8,11 +8,14 @@
 import Foundation
 import UserNotifications
 
-final class LocalNotificationManager: NotificationManaging {
+final class LocalNotificationManager: NSObject, NotificationManaging, UNUserNotificationCenterDelegate {
     
     static let shared = LocalNotificationManager()
     
-    private init() {}
+    private override init() {
+        super.init()
+        UNUserNotificationCenter.current().delegate = self
+    }
     
     func requestPermission() async -> Bool {
         do {
@@ -50,5 +53,44 @@ final class LocalNotificationManager: NotificationManaging {
                 print("Notification Scheduling Failed: \(error)")
             }
         }
+    }
+
+    func scheduleReminderNotification(title: String, body: String, identifier: String, at date: Date) {
+        cancelNotification(identifier: identifier)
+
+        guard date > Date() else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+
+        let dateComponents = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute],
+            from: date
+        )
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: identifier,
+            content: content,
+            trigger: trigger
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                print("Timed Notification Scheduling Failed: \(error)")
+            }
+        }
+    }
+
+    func cancelNotification(identifier: String) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound, .list]
     }
 }

@@ -14,14 +14,18 @@ import Combine
 final class MapScreenViewModel: ObservableObject {
     /// Places returned by the most recent POI search.
     @Published private(set) var pois: [Place] = []
+    @Published private(set) var searchResults: [AddressSuggestion] = []
 
     /// Which category to look for. nil means show every discoverable category.
     @Published var selectedPOICategory: PlaceType?
 
     private let store: any PlaceStore
     private let location: any LocationProviding
+    private let searcher: any AddressSearching
+    private let geocoder: any Geocoding
     private let poiDiscovery: any POIDiscovering
     private var cancellables = Set<AnyCancellable>()
+    private var searchTask: Task<Void, Never>?
 
     /// Categories the picker offers. Personal categories (home, work, custom)
     /// are excluded because Apple's catalogue doesn't know about them.
@@ -40,10 +44,14 @@ final class MapScreenViewModel: ObservableObject {
     init(
         store: any PlaceStore,
         location: any LocationProviding,
+        searcher: any AddressSearching,
+        geocoder: any Geocoding,
         poiDiscovery: any POIDiscovering
     ) {
         self.store = store
         self.location = location
+        self.searcher = searcher
+        self.geocoder = geocoder
         self.poiDiscovery = poiDiscovery
 
         // Tell SwiftUI to redraw when either the saved Places or the user's
@@ -89,5 +97,39 @@ final class MapScreenViewModel: ObservableObject {
     func selectCategoryAndRefresh(_ category: PlaceType?) async {
         selectedPOICategory = category
         await refreshPOIs()
+    }
+
+    func performSearch(query: String) {
+        searchTask?.cancel()
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty else {
+            searchResults = []
+            return
+        }
+
+        searchTask = Task { [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(for: .milliseconds(220))
+            if Task.isCancelled { return }
+            let results = await self.searcher.search(query: trimmed)
+            if Task.isCancelled { return }
+            self.searchResults = results
+        }
+    }
+
+    func clearSearchResults() {
+        searchTask?.cancel()
+        searchResults = []
+    }
+
+    func makeCreationViewModel(from suggestion: AddressSuggestion) -> PlaceCreationViewModel {
+        PlaceCreationViewModel(
+            store: store,
+            location: location,
+            searcher: searcher,
+            geocoder: geocoder,
+            seedSuggestion: suggestion
+        )
     }
 }
