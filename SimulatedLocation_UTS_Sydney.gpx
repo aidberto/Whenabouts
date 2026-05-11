@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx
+    version="1.1"
+    creator="Xcode"
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+
+    <trk>
+        <name>UTS Geofence Entry + Exit Test</name>
+        <trkseg>
+
+            <!-- ── Start: ~300 m north of UTS, clearly outside geofence ── -->
+            <trkpt lat="-33.8813" lon="151.1993">
+                <time>2026-05-11T00:00:00Z</time>
+            </trkpt>
+            <trkpt lat="-33.8816" lon="151.1993">
+                <time>2026-05-11T00:00:03Z</time>
+            </trkpt>
+            <trkpt lat="-33.8819" lon="151.1993">
+                <time>2026-05-11T00:00:06Z</time>
+            </trkpt>
+            <trkpt lat="-33.8822" lon="151.1993">
+                <time>2026-05-11T00:00:09Z</time>
+            </trkpt>
+            <trkpt lat="-33.8825" lon="151.1993">
+                <time>2026-05-11T00:00:12Z</time>
+            </trkpt>
+
+            <!-- ── Approaching UTS from the north ── -->
+            <trkpt lat="-33.8828" lon="151.1993">
+                <time>2026-05-11T00:00:15Z</time>
+            </trkpt>
+            <trkpt lat="-33.8831" lon="151.1993">
+                <time>2026-05-11T00:00:18Z</time>
+            </trkpt>
+            <trkpt lat="-33.8834" lon="151.1993">
+                <time>2026-05-11T00:00:21Z</time>
+            </trkpt>
+
+            <!-- ── CROSSING THE GEOFENCE BOUNDARY (entry fires here) ── -->
+            <trkpt lat="-33.8837" lon="151.1993">
+                <time>2026-05-11T00:00:24Z</time>
+            </trkpt>
+            <trkpt lat="-33.8839" lon="151.1993">
+                <time>2026-05-11T00:00:27Z</time>
+            </trkpt>
+
+            <!-- ── Inside UTS campus — linger for several ticks ── -->
+            <trkpt lat="-33.8840" lon="151.1993">
+                <time>2026-05-11T00:00:30Z</time>
+            </trkpt>
+            <trkpt lat="-33.8840" lon="151.1993">
+                <time>2026-05-11T00:00:33Z</time>
+            </trkpt>
+            <trkpt lat="-33.8841" lon="151.1993">
+                <time>2026-05-11T00:00:36Z</time>
+            </trkpt>
+            <trkpt lat="-33.8841" lon="151.1993">
+                <time>2026-05-11T00:00:39Z</time>
+            </trkpt>
+            <trkpt lat="-33.8842" lon="151.1993">
+                <time>2026-05-11T00:00:42Z</time>
+            </trkpt>
+            <trkpt lat="-33.8842" lon="151.1993">
+                <time>2026-05-11T00:00:45Z</time>
+            </trkpt>
+            <trkpt lat="-33.8841" lon="151.1993">
+                <time>2026-05-11T00:00:48Z</time>
+            </trkpt>
+            <trkpt lat="-33.8840" lon="151.1993">
+                <time>2026-05-11T00:00:51Z</time>
+            </trkpt>
+
+            <!-- ── Leaving UTS, heading back north ── -->
+            <trkpt lat="-33.8838" lon="151.1993">
+                <time>2026-05-11T00:00:54Z</time>
+            </trkpt>
+            <trkpt lat="-33.8836" lon="151.1993">
+                <time>2026-05-11T00:00:57Z</time>
+            </trkpt>
+
+            <!-- ── CROSSING THE GEOFENCE BOUNDARY (exit fires here) ── -->
+            <trkpt lat="-33.8834" lon="151.1993">
+                <time>2026-05-11T00:01:00Z</time>
+            </trkpt>
+            <trkpt lat="-33.8831" lon="151.1993">
+                <time>2026-05-11T00:01:03Z</time>
+            </trkpt>
+
+            <!-- ── End: back north, clearly outside geofence ── -->
+            <trkpt lat="-33.8828" lon="151.1993">
+                <time>2026-05-11T00:01:06Z</time>
+            </trkpt>
+            <trkpt lat="-33.8825" lon="151.1993">
+                <time>2026-05-11T00:01:09Z</time>
+            </trkpt>
+            <trkpt lat="-33.8822" lon="151.1993">
+                <time>2026-05-11T00:01:12Z</time>
+            </trkpt>
+            <trkpt lat="-33.8819" lon="151.1993">
+                <time>2026-05-11T00:01:15Z</time>
+            </trkpt>
+            <trkpt lat="-33.8816" lon="151.1993">
+                <time>2026-05-11T00:01:18Z</time>
+            </trkpt>
+            <trkpt lat="-33.8813" lon="151.1993">
+                <time>2026-05-11T00:01:21Z</time>
+            </trkpt>
+
+        </trkseg>
+    </trk>
+
+</gpx>
