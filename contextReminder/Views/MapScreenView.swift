@@ -143,8 +143,15 @@ struct MapScreenView: View {
                         poiFilterChip(title: type.displayName, icon: icon(for: type), type: type)
                     }
                 }
-                .padding(.horizontal, 2)
+                .padding(.horizontal, 8)
             }
+            .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40)
+            .background(.white.opacity(0.72), in: Capsule())
+            .overlay(
+                Capsule()
+                    .stroke(Color(red: 0.78, green: 0.73, blue: 0.64).opacity(0.18), lineWidth: 1)
+            )
+            .clipShape(Capsule())
 
             if !viewModel.searchResults.isEmpty && !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 searchResultsPanel
