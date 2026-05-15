@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx
+    version="1.1"
+    creator="Xcode"
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+<!--Simulate from supermarket to post office-->
+    <wpt lat="-33.872300" lon="151.206700">
+        <name>Woolworths Town Hall</name>
+    </wpt>
+
+    <wpt lat="-33.879300" lon="151.204100">
+        <name>Post Office Haymarket</name>
+    </wpt>
+
+</gpx>

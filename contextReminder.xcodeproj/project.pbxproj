@@ -6,7 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		022C39912FB756C5001947B6 /* Simulated_TownHall_Haymarket.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 022C39902FB756C5001947B6 /* Simulated_TownHall_Haymarket.gpx */; };
+		022C39932FB75738001947B6 /* Simulated_Coles.gpx in Resources */ = {isa = PBXBuildFile; fileRef = 022C39922FB75738001947B6 /* Simulated_Coles.gpx */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		022C39902FB756C5001947B6 /* Simulated_TownHall_Haymarket.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Simulated_TownHall_Haymarket.gpx; sourceTree = "<group>"; };
+		022C39922FB75738001947B6 /* Simulated_Coles.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Simulated_Coles.gpx; sourceTree = "<group>"; };
 		F6403FF62FB09ACF00B8A0A8 /* SimulatedLocation_UTS_Sydney.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = SimulatedLocation_UTS_Sydney.gpx; sourceTree = "<group>"; };
 		F6595A782F973A95003D8FCB /* contextReminder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = contextReminder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -46,6 +53,8 @@
 		F6595A6F2F973A95003D8FCB = {
 			isa = PBXGroup;
 			children = (
+				022C39922FB75738001947B6 /* Simulated_Coles.gpx */,
+				022C39902FB756C5001947B6 /* Simulated_TownHall_Haymarket.gpx */,
 				F6403FF62FB09ACF00B8A0A8 /* SimulatedLocation_UTS_Sydney.gpx */,
 				F6595A7A2F973A95003D8FCB /* contextReminder */,
 				F6595A792F973A95003D8FCB /* Products */,
@@ -124,6 +133,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				022C39912FB756C5001947B6 /* Simulated_TownHall_Haymarket.gpx in Resources */,
+				022C39932FB75738001947B6 /* Simulated_Coles.gpx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -72,7 +72,7 @@ final class GeofenceCoordinator {
         print("Current Latitude: ", userLocation.latitude)
         print("Current Longitude", userLocation.longitude)
         
-        for trigger in selected {
+        for trigger in selected where toStart.contains(trigger.regionId) {
             guard trigger.triggerType == .arriving else { continue }
             if isInside(userLocation, trigger: trigger), !isDebounced(trigger) {
                 print("User is inside trigger region")
