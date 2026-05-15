@@ -15,7 +15,7 @@ struct Place: Identifiable, Codable, Equatable {
         placeType: PlaceType,
         latitude: Double,
         longitude: Double,
-        radius: Double = 5000
+        radius: Double = 100
     ) {
         self.id = id
         self.name = name

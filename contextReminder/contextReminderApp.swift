@@ -74,7 +74,8 @@ struct contextReminderApp: App {
                 reminderStore: reminderStore,
                 placeStore: placeStore,
                 geofenceCoordinator: geofenceCoordinator,
-                locationProvider: locationProvider
+                locationProvider: locationProvider,
+                poiDiscovery: poiDiscovery
                 )
 
                 geofenceCoordinator.onEvent = { event in
